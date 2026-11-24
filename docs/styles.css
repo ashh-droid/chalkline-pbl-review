@@ -176,3 +176,13 @@ h1,h2,h3,h4{font-weight:500}
  .finance-row>*:nth-child(4){font-size:12px;align-self:center;overflow-wrap:anywhere}
  .finance-row>span:nth-child(2){font-size:12px;overflow-wrap:anywhere}
 }
+
+/* Preserve exact 75% marker alignment on narrow screens without crowding numbers. */
+@media(max-width:600px){
+ .bullet-axis{display:block;height:21px;position:relative;font-size:12px}
+ .bullet-axis span{position:absolute;top:5px;white-space:nowrap}
+ .bullet-axis span:nth-child(1){left:0}
+ .bullet-axis span:nth-child(2),.bullet-axis span:nth-child(3){display:none}
+ .bullet-axis span:nth-child(4){left:75%;transform:translateX(-50%)}
+ .bullet-axis span:nth-child(5){right:0}
+}
