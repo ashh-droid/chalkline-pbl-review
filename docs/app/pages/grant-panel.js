@@ -1,35 +1,25 @@
 /** Grant report displayed as an annotated document, not a generic dashboard. */
-import { formatPercent, MONTHS, LABELS, } from "../core.js";
+import { formatPercent, LABELS, } from "../core.js";
 export function renderGrantPage({ grantRows, selectedGrant, f, gr, header, footer, opt, fmt, esc, pill, showMedia, showSources, aiRequested, aiOutput, aiStatus, renderCitations, }) {
     const opts = Array.from(new Map(grantRows.map((x) => [x.grant_id, x.grant_name])).entries());
     const m = gr.metrics;
     const util = gr.financeTotals.derivedUtilization;
     const periodEnded = f.month >= gr.source.period_end_date.slice(0, 7);
     const sourceText = aiOutput && aiRequested ? aiOutput : gr.narrative;
-    const staticSite = location.hostname.endsWith(".github.io");
-    const label = aiOutput && aiRequested
-        ? "AI wording, structure and numbers checked"
-        : aiRequested
-            ? "Deterministic fallback"
-            : "Deterministic narrative · AI off";
-    return `${header()}
-<section class="paper-title">
-<div class="title-meta"><span>PBL / GRANT REPORTING</span><span>ANNOTATED DOCUMENT</span></div>
-<h1>Grant reporting</h1>
-<p>Calculated figures at left. Report wording at right. Every claim has a source.</p></section>
- 
-<section class="grant-selector">
-<label>Choose grant<select data-grant="true">${opts.map(([k, v]) => opt(k, v, selectedGrant)).join("")}</select></label>
-<label>Reporting period<select data-filter="month">${MONTHS.map((month) => opt(month, LABELS[month], f.month)).join("")}</select></label><span>ALL FACTS FROM SOURCE DATA · AI OPTIONAL</span></section>
- 
-<section class="grant-lead">
-<div>
-<p class="overline">${esc(gr.source.grant_id)} / ${esc(LABELS[f.month])}</p>
-<h2>${esc(gr.source.grant_name)}</h2>
-<p>${esc(gr.districts.join(" · "))}</p></div>
-<div class="grant-meta"><span>${pill(gr.risk.level)}</span><small>${gr.verification.ok ? "✓ School counts reconciled with source" : "! Source counts differ"}</small></div></section>
- 
-<section class="grant-observation" aria-label="Grant performance overview">
+    const remaining = Math.max(0, gr.financeTotals.approved - gr.financeTotals.reportedCumulative);
+    const shortName = gr.source.grant_id.match(/GRANT_([A-Z]+)_/)?.[1] || gr.source.grant_id;
+    const grantOptions = Array.from(new Map(grantRows.map((x) => [x.grant_id, x.grant_name])).entries());
+    return `${header()}<div class="grant-page">
+  <div class="grant-choices" role="group" aria-label="Choose grant"><span>Grant</span>
+    ${grantOptions.map(([id]) => `<button data-grant-select="${esc(id)}" class="${id === selectedGrant ? "active" : ""}" aria-pressed="${id === selectedGrant}">${id.match(/GRANT_([A-Z]+)_/)?.[1] || id}</button>`).join("")}
+    <span class="grant-month-note">${esc(LABELS[f.month])}</span>
+  </div>
+  <section class="grant-brief" aria-label="Grant report summary">
+    <div class="grant-brief-meta">${pill(gr.risk.level)} · Grant ${esc(shortName)} · ${esc(LABELS[f.month])}</div>
+    <h1>Attendance is ${formatPercent(m.attendanceRate)}. ${util.toFixed(1)}% of the budget is reported used${periodEnded ? `; the grant ended on ${esc(new Date(gr.source.period_end_date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }))} with ${fmt(remaining)} units not reported as utilized.` : "."}</h1>
+    <p>${esc(gr.source.grant_name)} · ${esc(gr.districts.join(", "))}. ${gr.warnings.length ? `${gr.warnings.length} source figures need checking.` : "Source totals reconciled."}</p>
+  </section>
+  <section class="grant-observation" aria-label="Grant performance overview">
  
 <div><small>Participation</small><strong>${formatPercent(m.participationRate)}</strong><span>${fmt(m.participating)} / ${fmt(m.schools)} schools</span></div>
  
@@ -40,18 +30,14 @@ export function renderGrantPage({ grantRows, selectedGrant, f, gr, header, foote
 <div><small>Reported budget utilized</small><strong>${util.toFixed(1)}%</strong><span>Approved ${fmt(gr.financeTotals.approved)} units</span></div>
  </section>
  
-<div class="grant-warningline ${gr.warnings.length ? "warn" : ""}"><strong>${gr.warnings.length ? "Reconciliation needs attention" : "Source figures reconciled"}</strong><span>${fmt(gr.financeTotals.reportedCumulative)} of ${fmt(gr.financeTotals.approved)} budget units reported as utilized (${util.toFixed(1)}%). ${periodEnded ? `The grant ended on ${esc(new Date(gr.source.period_end_date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }))} with ${fmt(Math.max(0, gr.financeTotals.approved - gr.financeTotals.reportedCumulative))} units not reported as utilized.` : `Grant end date: ${esc(new Date(gr.source.period_end_date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }))}.`} ${gr.warnings.length} source figures need checking.</span></div>
- 
 <section class="register-section grant-document">
 <div class="register-head">
 <div>
-<p class="overline">Review-ready material</p>
+
 <h2>Report draft</h2>
-<p>Move over a citation to find its matching fact. Click to open the full fact.</p></div>
-${staticSite ? '<span class="static-ai-note">This static demo uses verified calculations. AI wording needs the server edition.</span>' : `<div class="narrative-modes" role="group" aria-label="Narrative generation mode"><button data-action="ai-off" class="${!aiRequested ? "active" : ""}" aria-pressed="${!aiRequested}">AI off</button><button data-action="ai-on" class="${aiRequested ? "active" : ""}" aria-pressed="${aiRequested}">Optional AI</button></div>`}</div>
- 
-<div class="narrative-status"><span class="small-square ${aiOutput && aiRequested ? "good" : "behind"}"></span><strong>${label}</strong><span>${esc(aiStatus)}</span></div>
- 
+<p>Select footnotes to see their source facts.</p></div>
+<div class="report-actions top-report-actions"><button data-action="copy-grant" class="solid-action">Copy</button><button data-action="download-grant" class="outline-action">Export</button><button data-action="print" class="outline-action">Print / PDF</button></div></div>
+
 <div class="document-columns">
 <div class="report-paper">
 <div class="report-paper-head"><span class="report-brand"><img src="brand/chalkline-wordmark-light.svg" alt="Chalkline" width="111" height="24"/> MONTHLY REPORT DRAFT</span><span>${esc(LABELS[f.month])}</span></div>
@@ -61,9 +47,9 @@ ${staticSite ? '<span class="static-ai-note">This static demo uses verified calc
 <p>${renderCitations(p)}</p>`)
         .join("")}
 <div class="report-legal">Synthetic demonstration material. Reports require human review before operational use.</div>
-<div class="report-actions"><button data-action="copy-grant" class="solid-action">Copy report</button><button data-action="download-grant" class="outline-action">Export Markdown</button><button data-action="print" class="outline-action">Print / PDF</button></div></div>
+</div>
  <aside class="fact-margin">
-<div class="fact-margin-heading"><span>THE FACT MARGIN</span><button data-action="toggle-sources">${showSources ? "Show fewer" : "Show all"} ${showSources ? "−" : "+"}</button></div>${gr.facts
+<div class="fact-margin-heading"><span>Source facts</span><button data-action="toggle-sources">${showSources ? "Show fewer" : "Show all"} ${showSources ? "−" : "+"}</button></div>${gr.facts
         .slice(0, showSources ? 99 : 8)
         .map((x) => `
 <div class="margin-fact" id="fact-${esc(x.id)}"><span class="fact-id">${esc(x.id)}</span>
@@ -75,7 +61,7 @@ ${staticSite ? '<span class="static-ai-note">This static demo uses verified calc
         : ""}</aside></div>
  </section>
  
-<section class="register-section finance-ledger">
+<details class="grant-support"><summary>Supporting details <span>Finance, milestones, evidence and source checks</span></summary><div class="grant-support-content"><section class="register-section finance-ledger">
 <div class="register-head">
 <div>
 <p class="overline">Finance register</p>
@@ -121,5 +107,5 @@ ${staticSite ? '<span class="static-ai-note">This static demo uses verified calc
 <p>${esc(x.summary_or_caption)}</p></figcaption></figure>`)
                 .join("")}</div>`
             : '<p class="no-evidence">No media is indexed for this grant and month. None has been invented.</p>'
-        : ""}</section>${footer()}`;
+        : ""}</section></div></details></div>${footer()}`;
 }

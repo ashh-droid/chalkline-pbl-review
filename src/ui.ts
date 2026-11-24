@@ -22,7 +22,7 @@ import { buildReviewDetail, generateReviewActions } from "./review.js";
 import { renderMeetingPage } from "./pages/meeting.js";
 import { renderGrantPage } from "./pages/grant-panel.js";
 import { renderQualityPage, type Quality } from "./pages/quality.js";
-import { renderChalkProgram } from "./pages/program-chalk.js";
+import { renderThisMonth } from "./pages/this-month.js";
 type Page = "review" | "meeting" | "grants" | "quality";
 const esc = (s: unknown) =>
   String(s ?? "").replace(
@@ -50,6 +50,10 @@ let selectedGrant = "GRANT_AA_2025",
   showSources = true,
   showMedia = true;
 let moreFilters = false;
+let methodsOpen = false;
+let districtTableOpen = false;
+let headerFiltersOpen = false;
+let printReturn = false;
 let gridView = "chart",
   plotView = "chart";
 let gridMonth: Month = "2025-09",
@@ -138,27 +142,53 @@ function selectors() {
 }
 
 function header() {
-  return `
-<div class="app-shell">
+  const index = MONTHS.indexOf(f.month);
+  const districts = Array.from(
+    new Set(
+      schoolRows.filter((r) => r.month === f.month).map((r) => r.district),
+    ),
+  ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const shortDate = LABELS[f.month].replace(
+    /^(January|February|March|April|May|June|July|August|September|October|November|December)/,
+    (name) => name.slice(0, 3),
+  );
+  return `<div class="app-shell compact-shell ${page === "grants" ? "grant-mode" : ""}">
     <header class="masthead">
-<div class="masthead-inner">
-<div class="masthead-top">
-      
-<div class="masthead-brand"><img class="chalkline-wordmark" src="brand/chalkline-wordmark-dark.svg" alt="Chalkline — PBL review and grant reporting" width="300" height="64"/><span class="chalkline-tagline">Mark where to act.</span></div>
-      
-<div class="masthead-note">INDEPENDENT PBL CASE STUDY <i></i> SYNTHETIC DATA ONLY</div>
-    </div><nav class="masthead-nav" aria-label="Main navigation">
-      <button data-page="review" class="${page === "review" ? "active" : ""}" aria-current="${page === "review" ? "page" : "false"}">Program review</button>
-      <button data-page="meeting" class="${page === "meeting" ? "active" : ""}" aria-current="${page === "meeting" ? "page" : "false"}">Meeting pack</button>
-      <button data-page="grants" class="${page === "grants" ? "active" : ""}" aria-current="${page === "grants" ? "page" : "false"}">Grant reporting</button>
-      <button data-page="quality" class="${page === "quality" ? "active" : ""}" aria-current="${page === "quality" ? "page" : "false"}">Data notes</button>
-    </nav></div></header>
-<main class="paper">
-<div class="paper-inner">`;
+      <div class="compact-header">
+        <a class="compact-wordmark" href="https://ashh-droid.github.io/chalkline-pbl-review/" aria-label="Chalkline home">
+          <img src="brand/chalkline-wordmark-dark.svg" width="142" height="38" alt="Chalkline"/>
+        </a>
+        <nav class="compact-nav" aria-label="Main navigation">
+          <button data-page="review" class="${page === "review" ? "active" : ""}" aria-current="${page === "review" ? "page" : "false"}">This month</button>
+          <button data-page="grants" class="${page === "grants" ? "active" : ""}" aria-current="${page === "grants" ? "page" : "false"}">Grant report</button>
+        </nav>
+        <div class="compact-header-tools">
+          <div class="compact-month-switch" aria-label="Reporting month">
+            <button data-action="month-prev" aria-label="Previous month" ${index === 0 ? "disabled" : ""}>‹</button>
+            <span aria-live="polite">${shortDate}</span>
+            <button data-action="month-next" aria-label="Next month" ${index === MONTHS.length - 1 ? "disabled" : ""}>›</button>
+          </div>
+          <label class="compact-district-picker"><span class="sr-only">Choose district</span>
+            <select data-filter="district" aria-label="Choose district"><option value="">All districts</option>
+            ${districts.map((d) => opt(d, d, f.district)).join("")}</select>
+          </label>
+          <button class="compact-filter-toggle" data-action="header-filters" aria-expanded="${headerFiltersOpen}" aria-controls="compact-more-filters">Filters ${f.grade !== "all" || f.subject !== "all" ? "•" : ""}</button>
+        </div>
+      </div>
+      ${
+        headerFiltersOpen
+          ? `<div class="compact-filter-popover" id="compact-more-filters">
+        <label>Class<select data-filter="grade">${["all", "6", "7", "8"].map((v) => opt(v, v === "all" ? "All classes" : "Class " + v, f.grade)).join("")}</select></label>
+        <label>Subject<select data-filter="subject">${["all", "science", "math"].map((v) => opt(v, v === "all" ? "Both subjects" : titleCase(v), f.subject)).join("")}</select></label>
+        <button data-action="reset">Clear filters</button>
+        <button data-action="header-filters" aria-label="Close filters">×</button>
+      </div>`
+          : ""
+      }
+    </header><main class="paper"><div class="paper-inner">`;
 }
 function footer() {
-  return `</div>
-<footer class="paper-footer"><span>CHALKLINE / INDEPENDENT PBL CASE STUDY</span><span>All school, grant, finance and evidence records are synthetic · Numbers from deterministic code.</span></footer></main></div>`;
+  return `</div><footer class="compact-footer"><span>Chalkline · Independent educational case study</span><span>Synthetic data only. Not actual programme or grant results.</span></footer></main></div>`;
 }
 function tableData(rows: GeoRow[]) {
   let copy = rows.filter(
@@ -232,21 +262,16 @@ function performanceTable(rows: GeoRow[]) {
 <div><button class="icon-button" data-action="prev-page" ${tablePage === 0 ? "disabled" : ""}>← Previous</button><span>Page ${tablePage + 1} / ${Math.max(1, max)}</span><button class="icon-button" data-action="next-page" ${tablePage >= max - 1 ? "disabled" : ""}>Next →</button></div></div>`;
 }
 function program() {
-  return renderChalkProgram({
+  return renderThisMonth({
     schools: schoolRows,
     filters: f,
     header,
     footer,
-    selectors,
     esc,
     fmt,
-    performanceTable,
-    gridMonth,
     focusedBlock,
-    showTable,
-    by,
-    gridView,
-    plotView,
+    methodOpen: methodsOpen,
+    showDistrictTable: districtTableOpen,
   });
 }
 function currentReviewDetail() {
@@ -393,9 +418,9 @@ function qualityPage() {
 function render() {
   document.title =
     {
-      review: "Programme review",
+      review: "This month",
       meeting: "Meeting pack",
-      grants: "Grant reporting",
+      grants: "Grant report",
       quality: "Data notes",
     }[page] + " | Chalkline";
   root.innerHTML =
@@ -462,6 +487,30 @@ document.addEventListener("change", (e) => {
 document.addEventListener("click", (e) => {
   const el = (e.target as HTMLElement).closest("button");
   if (!el) return;
+  if (el.dataset.grantSelect) {
+    selectedGrant = el.dataset.grantSelect;
+    aiOutput = null;
+    render();
+    return;
+  }
+  if (el.dataset.openBlock) {
+    focusedBlock = el.dataset.openBlock;
+    methodsOpen = false;
+    render();
+    document
+      .querySelector<HTMLElement>(".record-drawer .drawer-close")
+      ?.focus();
+    return;
+  }
+  if (el.dataset.openDistrict) {
+    f.district = el.dataset.openDistrict;
+    f.block = "";
+    focusedBlock = null;
+    syncURL();
+    render();
+    window.scrollTo({ top: 0, behavior: "instant" });
+    return;
+  }
   const remove = el.dataset.removeFilter as keyof Filters | undefined;
   if (remove) {
     (f as unknown as Record<string, string>)[remove] =
@@ -549,7 +598,10 @@ document.addEventListener("click", (e) => {
   if (el.dataset.chartExport) {
     const chart = el.dataset.chartExport;
     const scope = chart === "grid" ? { ...f, month: gridMonth } : f;
-    const place = chart === "grid" || f.district ? "block" : "district";
+    const place =
+      chart === "grid" || chart === "all-blocks" || f.district
+        ? "block"
+        : "district";
     const rows = geography(
       schoolRows.filter(
         (x) =>
@@ -596,6 +648,52 @@ document.addEventListener("click", (e) => {
     return;
   }
   const action = el.dataset.action;
+  if (action === "month-prev" || action === "month-next") {
+    const next = MONTHS.indexOf(f.month) + (action === "month-next" ? 1 : -1);
+    if (next >= 0 && next < MONTHS.length) {
+      f.month = MONTHS[next];
+      f.block = "";
+      focusedBlock = null;
+      gridMonth = f.month;
+      syncURL();
+      render();
+    }
+    return;
+  }
+  if (action === "header-filters") {
+    headerFiltersOpen = !headerFiltersOpen;
+    render();
+    document.querySelector<HTMLElement>(".compact-filter-toggle")?.focus();
+    return;
+  }
+  if (action === "toggle-district-table") {
+    districtTableOpen = !districtTableOpen;
+    render();
+    return;
+  }
+  if (action === "open-methods") {
+    methodsOpen = true;
+    focusedBlock = null;
+    render();
+    document
+      .querySelector<HTMLElement>(".methods-drawer .drawer-close")
+      ?.focus();
+    return;
+  }
+  if (action === "close-methods") {
+    methodsOpen = false;
+    render();
+    document.querySelector<HTMLElement>(".info-link")?.focus();
+    return;
+  }
+  if (action === "print-meeting") {
+    page = "meeting";
+    printReturn = true;
+    render();
+    requestAnimationFrame(() => window.print());
+    return;
+  }
+
   if (action === "more-filters") {
     moreFilters = !moreFilters;
     render();
@@ -607,12 +705,18 @@ document.addEventListener("click", (e) => {
     return;
   }
   if (action === "close-block") {
-    focusedBlock = "__closed__";
+    const returning = focusedBlock;
+    focusedBlock = null;
     render();
+    if (returning)
+      Array.from(document.querySelectorAll<HTMLElement>("[data-open-block]"))
+        .find((el) => el.dataset.openBlock === returning)
+        ?.focus();
     return;
   }
   if (action === "reset") {
     moreFilters = false;
+    headerFiltersOpen = false;
     f = {
       month: f.month,
       district: "",
@@ -622,6 +726,7 @@ document.addEventListener("click", (e) => {
     };
     syncURL();
     render();
+    return;
   }
   if (action === "prev-page") {
     tablePage = Math.max(0, tablePage - 1);
@@ -705,6 +810,52 @@ async function init() {
   }
 }
 void init();
+
+window.addEventListener("afterprint", () => {
+  if (printReturn) {
+    printReturn = false;
+    page = "review";
+    render();
+  }
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && (methodsOpen || focusedBlock)) {
+    if (methodsOpen) {
+      methodsOpen = false;
+      render();
+      document.querySelector<HTMLElement>(".info-link")?.focus();
+    } else {
+      const target = focusedBlock;
+      focusedBlock = null;
+      render();
+      Array.from(document.querySelectorAll<HTMLElement>("[data-open-block]"))
+        .find((el) => el.dataset.openBlock === target)
+        ?.focus();
+    }
+  }
+  if (event.key === "Tab" && (methodsOpen || focusedBlock)) {
+    const dialog = document.querySelector<HTMLElement>(
+      ".record-drawer[role=dialog]",
+    );
+    if (!dialog) return;
+    const controls = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        'button:not(:disabled),a[href],select:not(:disabled),[tabindex="0"]',
+      ),
+    );
+    if (!controls.length) return;
+    const first = controls[0],
+      last = controls[controls.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+});
+
 // SVG plot markers select their district with the same filter logic as the select control.
 document.addEventListener("click", (e) => {
   const plot = (e.target as HTMLElement).closest(
