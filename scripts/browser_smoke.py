@@ -53,7 +53,8 @@ with sync_playwright() as playwright:
         if page.locator('.evidence-grid img').count() > 0:
             image = page.locator('.evidence-grid img').first
             image.scroll_into_view_if_needed()
-            assert image.evaluate('(img) => img.complete && img.naturalWidth > 0')
+            image.evaluate("(img) => {img.loading = 'eager'}")
+            page.wait_for_function("() => { const image = document.querySelector('.evidence-grid img'); return image && image.complete && image.naturalWidth > 0 }", timeout=15000)
         page.locator('[data-page="quality"]').first.click()
         assert page.locator('.method-note').count() == 4
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 2'), f'Overflow after navigation at {width}px'
