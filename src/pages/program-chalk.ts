@@ -128,7 +128,12 @@ function matrix(
     ? MONTHS.map((month) => ({
         month,
         geo: geography(
-          availableRows(schools, { ...f, month, district: selected.name.split(" - Block ")[0], block: selected.name }),
+          availableRows(schools, {
+            ...f,
+            month,
+            district: selected.name.split(" - Block ")[0],
+            block: selected.name,
+          }),
           "block",
           f.grade,
           f.subject,
@@ -140,10 +145,17 @@ function matrix(
     { label: "Evidence", key: "evidenceRate" },
     { label: "Attendance", key: "attendanceRate" },
   ] as const;
-  const registerRows = registerIndicators.map(indicator => `<tr><th scope="row">${indicator.label}</th>${focusedTrend.map(x => {
-    const value = x.geo?.metrics[indicator.key] ?? null;
-    return `<td><span aria-label="${indicator.label} for ${LABELS[x.month]}: ${formatPercent(value)}" title="${formatPercent(value)}" class="register-mark ${value === null ? "nodata" : value >= THRESHOLDS.ON_TRACK ? "good" : "critical"}">${value === null ? "—" : value >= THRESHOLDS.ON_TRACK ? "✓" : "×"}</span></td>`;
-  }).join("")}</tr>`).join("");
+  const registerRows = registerIndicators
+    .map(
+      (indicator) =>
+        `<tr><th scope="row">${indicator.label}</th>${focusedTrend
+          .map((x) => {
+            const value = x.geo?.metrics[indicator.key] ?? null;
+            return `<td><span aria-label="${indicator.label} for ${LABELS[x.month]}: ${formatPercent(value)}" title="${formatPercent(value)}" class="register-mark ${value === null ? "nodata" : value >= THRESHOLDS.ON_TRACK ? "good" : "critical"}">${value === null ? "—" : value >= THRESHOLDS.ON_TRACK ? "✓" : "×"}</span></td>`;
+          })
+          .join("")}</tr>`,
+    )
+    .join("");
   return `<section class="register-section" aria-labelledby="block-map-title">
     <div class="register-head"><div><h2 id="block-map-title">${counts.Critical} of ${groups.length} blocks are critical in ${LABELS[gridMonth].split(" ")[0]}</h2><p>Grouped by district, with critical blocks first. Select a square for the monthly record.</p></div>
       <div class="month-switch" role="group" aria-label="Block map month">${MONTHS.map((month) => `<button data-grid-month="${month}" class="${gridMonth === month ? "selected" : ""}" aria-pressed="${gridMonth === month}">${LABELS[month].split(" ")[0]}</button>`).join("")}</div></div>

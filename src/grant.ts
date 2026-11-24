@@ -303,7 +303,13 @@ export function computeGrant(
       );
   }
   // Nothing in this narrative is produced by an LLM; all claims use the fact ledger.
-  const endDateLabel = new Date(source.period_end_date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const endDateLabel = new Date(
+    source.period_end_date + "T00:00:00",
+  ).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
   const narrative = `${source.grant_name} covers ${number(metrics.schools)} synthetic school records across ${districts.length} districts in ${LABELS[month]}. [F1][F2][F3]
 
 PBL took place in ${number(metrics.participating)} schools (${formatPercent(metrics.participationRate)}). [F4] ${number(metrics.evidenceCount)} schools submitted evidence (${formatPercent(metrics.evidenceRate)}). [F5] Recorded attendance was ${number(metrics.attendance)} of ${number(metrics.possibleSessions)} possible Science/Math attendances (${formatPercent(metrics.attendanceRate)}). [F6]

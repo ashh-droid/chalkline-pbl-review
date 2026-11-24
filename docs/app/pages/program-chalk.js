@@ -67,9 +67,27 @@ function matrix(schools, f, gridMonth, focus, esc, fmt) {
     const focusedTrend = selected
         ? MONTHS.map((month) => ({
             month,
-            geo: geography(availableRows(schools, { ...f, month }), "block", f.grade, f.subject).find((g) => g.name === focus),
+            geo: geography(availableRows(schools, {
+                ...f,
+                month,
+                district: selected.name.split(" - Block ")[0],
+                block: selected.name,
+            }), "block", f.grade, f.subject).find((g) => g.name === selected.name),
         }))
         : [];
+    const registerIndicators = [
+        { label: "Participation", key: "participationRate" },
+        { label: "Evidence", key: "evidenceRate" },
+        { label: "Attendance", key: "attendanceRate" },
+    ];
+    const registerRows = registerIndicators
+        .map((indicator) => `<tr><th scope="row">${indicator.label}</th>${focusedTrend
+        .map((x) => {
+        const value = x.geo?.metrics[indicator.key] ?? null;
+        return `<td><span aria-label="${indicator.label} for ${LABELS[x.month]}: ${formatPercent(value)}" title="${formatPercent(value)}" class="register-mark ${value === null ? "nodata" : value >= THRESHOLDS.ON_TRACK ? "good" : "critical"}">${value === null ? "—" : value >= THRESHOLDS.ON_TRACK ? "✓" : "×"}</span></td>`;
+    })
+        .join("")}</tr>`)
+        .join("");
     return `<section class="register-section" aria-labelledby="block-map-title">
     <div class="register-head"><div><h2 id="block-map-title">${counts.Critical} of ${groups.length} blocks are critical in ${LABELS[gridMonth].split(" ")[0]}</h2><p>Grouped by district, with critical blocks first. Select a square for the monthly record.</p></div>
       <div class="month-switch" role="group" aria-label="Block map month">${MONTHS.map((month) => `<button data-grid-month="${month}" class="${gridMonth === month ? "selected" : ""}" aria-pressed="${gridMonth === month}">${LABELS[month].split(" ")[0]}</button>`).join("")}</div></div>
@@ -87,7 +105,7 @@ function matrix(schools, f, gridMonth, focus, esc, fmt) {
         .filter((l) => l !== "No Data" || counts[l] > 0)
         .map((level) => `<span><i class="status-square ${levelClass[level]}"></i>${level} <b>${counts[level]}</b></span>`)
         .join("")}</div>
-    </div><aside class="focus-panel">${selected ? `<div class="focus-top"><span>BLOCK RECORD</span><button data-action="close-block" aria-label="Close block details">×</button></div><h3>${esc(selected.name)}</h3>${statusMark(selected.risk.level)}<div class="focus-stat"><strong>${formatPercent(selected.risk.value)}</strong><small>Weakest indicator: ${esc(selected.risk.name)}</small></div><p><b>${fmt(selected.metrics.schools)}</b> schools · <b>${fmt(selected.metrics.enrollment)}</b> enrolled</p><div class="focus-timeline"><h4>Three-month attendance</h4>${focusedTrend.map((x) => `<div><span>${LABELS[x.month].split(" ")[0]}</span><span class="mini-track"><i style="width:${Math.max(0, Math.min(100, x.geo?.metrics.attendanceRate ?? 0))}%"></i></span><strong>${formatPercent(x.geo?.metrics.attendanceRate ?? null)}</strong></div>`).join("")}</div><button data-focus-district="${esc(selected.name.split(" - Block ")[0])}" class="text-action">Open this district →</button>` : `<div class="focus-empty"><span class="focus-glyph">▤</span><h3>Choose a square.</h3><p>You'll see the block's status, enrollment and attendance trend here. All values come from the school records.</p></div>`}</aside></div>
+    </div><aside class="focus-panel">${selected ? `<div class="focus-top"><span>BLOCK RECORD</span><button data-action="close-block" aria-label="Close block details">×</button></div><h3>${esc(selected.name)}</h3>${statusMark(selected.risk.level)}<div class="focus-stat"><strong>${formatPercent(selected.risk.value)}</strong><small>Weakest indicator: ${esc(selected.risk.name)}</small></div><p><b>${fmt(selected.metrics.schools)}</b> schools · <b>${fmt(selected.metrics.enrollment)}</b> enrolled</p><div class="focus-timeline"><h4>Three-month attendance</h4>${focusedTrend.map((x) => `<div><span>${LABELS[x.month].split(" ")[0]}</span><span class="mini-track"><i style="width:${Math.max(0, Math.min(100, x.geo?.metrics.attendanceRate ?? 0))}%"></i></span><strong>${formatPercent(x.geo?.metrics.attendanceRate ?? null)}</strong></div>`).join("")}</div><div class="register-history"><h4>Indicator register</h4><table><thead><tr><th scope="col">Measure</th><th scope="col">Jul</th><th scope="col">Aug</th><th scope="col">Sep</th></tr></thead><tbody>${registerRows}</tbody></table><p>✓ Meets 75% target · × Below target</p></div><button data-focus-district="${esc(selected.name.split(" - Block ")[0])}" class="text-action">Open this district →</button>` : `<div class="focus-empty"><span class="focus-glyph">▤</span><h3>Choose a square.</h3><p>You'll see the block's status, enrollment and attendance trend here. All values come from the school records.</p></div>`}</aside></div>
   </section>`;
 }
 function stripPlot(districts, esc, fmt, selectedDistrict = "") {
