@@ -303,13 +303,14 @@ export function computeGrant(
       );
   }
   // Nothing in this narrative is produced by an LLM; all claims use the fact ledger.
+  const endDateLabel = new Date(source.period_end_date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
   const narrative = `${source.grant_name} covers ${number(metrics.schools)} synthetic school records across ${districts.length} districts in ${LABELS[month]}. [F1][F2][F3]
 
 PBL took place in ${number(metrics.participating)} schools (${formatPercent(metrics.participationRate)}). [F4] ${number(metrics.evidenceCount)} schools submitted evidence (${formatPercent(metrics.evidenceRate)}). [F5] Recorded attendance was ${number(metrics.attendance)} of ${number(metrics.possibleSessions)} possible Science/Math attendances (${formatPercent(metrics.attendanceRate)}). [F6]
 
 Overall status: ${status.level}, driven by ${status.name.toLowerCase()} at ${formatPercent(status.value)}. [F7] ${attendanceDelta === null ? "There is no earlier comparison month in this dataset." : `Attendance changed ${attendanceDelta >= 0 ? "+" : ""}${attendanceDelta.toFixed(1)} pp from ${formatPercent(previous!.attendanceRate)} the previous month to ${formatPercent(metrics.attendanceRate)}.`} [F12]
 
-Reported cumulative expenditure is ${number(financeTotals.reportedCumulative)} of ${number(financeTotals.approved)} budget units (${financeTotals.derivedUtilization.toFixed(1)}%); ${number(financeTotals.monthly)} units were spent this month. [F8][F9] ${periodEnded ? `The grant period ended ${source.period_end_date}, with ${number(budgetRemaining)} units (${unspentPp.toFixed(1)} percentage points) not reported as utilized; this requires a close-out review.` : `The scheduled end date is ${source.period_end_date}; spending should be reviewed against the remaining period.`} [F13]
+Reported cumulative expenditure is ${number(financeTotals.reportedCumulative)} of ${number(financeTotals.approved)} budget units (${financeTotals.derivedUtilization.toFixed(1)}%); ${number(financeTotals.monthly)} units were spent this month. [F8][F9] ${periodEnded ? `The grant period ended ${endDateLabel}, with ${number(budgetRemaining)} units (${unspentPp.toFixed(1)} percentage points) not reported as utilized; this requires a close-out review.` : `The scheduled end date is ${endDateLabel}; spending should be reviewed against the remaining period.`} [F13]
 
 Milestones recorded: ${milestones.map((m) => `${m.name} — ${m.status} (${m.owner})`).join("; ") || "none listed"}. [F10] ${assets.length ? `${assets.length} synthetic evidence/media record(s) are indexed for this period.` : "No evidence/media assets are indexed for this grant and month."} [F11]
 
