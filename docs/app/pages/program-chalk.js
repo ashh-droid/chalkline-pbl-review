@@ -28,7 +28,7 @@ function bullet(label, value, previous, context) {
       <div class="bullet-bands"><span class="seg-critical"></span><span class="seg-risk"></span><span class="seg-behind"></span><span class="seg-good"></span></div>
       <span class="bullet-actual" style="left:${clamped}%"></span>
       <span class="bullet-target" style="left:${THRESHOLDS.ON_TRACK}%" title="Target: ${THRESHOLDS.ON_TRACK}%"></span>${leftPrev}
-    </div><div class="bullet-axis"><span>0</span><span>35</span><span>60</span><span>75 target</span><span>100%</span></div></div>
+    </div><div class="bullet-axis"><span>0</span><span>35</span><span>60</span><span>75%</span><span>100%</span></div></div>
     <div class="bullet-figure"><strong>${formatPercent(value)}</strong><small>${fmtDelta(value, previous)}</small><small class="bullet-takeaway">${value === null ? "No recorded measure" : value < THRESHOLDS.ON_TRACK ? `${(THRESHOLDS.ON_TRACK - value).toFixed(1)} points short of target` : `${(value - THRESHOLDS.ON_TRACK).toFixed(1)} points above target`}</small></div>
   </div>`;
 }
