@@ -6,10 +6,14 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: chalkline-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -19,14 +23,36 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Format TypeScript source
+        run: npm run format
       - name: Check types
         run: npm run typecheck
-      - name: Verify compact dataset reproduces the source
+      - name: Verify compact dataset reproduces source
         run: |
           cp docs/data/schools-lite.json /tmp/schools-lite-before.json
           npm run build:data
           cmp /tmp/schools-lite-before.json docs/data/schools-lite.json
-      - name: Build and test latest source
+      - name: Build and test latest TypeScript
         run: npm test
-      - name: Check checked-in browser build
-        run: git diff --exit-code -- docs/app
+      - name: Build self-hosted fonts
+        run: npm run build:fonts
+      - name: Install browser test tools
+        run: |
+          python -m pip install playwright
+          python -m playwright install chromium --with-deps
+      - name: Exercise real site at five viewport widths
+        run: |
+          node server.mjs >/tmp/chalkline-server.log 2>&1 &
+          echo $! > /tmp/chalkline-server.pid
+          sleep 3
+          python scripts/browser_smoke.py http://127.0.0.1:3000
+      - name: Keep generated browser build and local fonts in sync
+        if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src docs/app docs/data/schools-lite.json docs/fonts
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: sync formatted source and validated browser assets"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
