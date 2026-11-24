@@ -167,3 +167,12 @@ h1,h2,h3,h4{font-weight:500}
 .grant-agenda-summary p{font-size:13px;line-height:1.5;margin:0 0 10px}
 .static-ai-note{display:block;color:var(--muted);font-size:13px;max-width:310px}
 @media(max-width:600px){.verdict-sentence{font-size:25px}.strip-caption{display:none}.register-head p:not(.overline){font-size:14px}.chart-actions button{min-height:44px}.masthead-nav{scroll-snap-type:x proximity}.masthead-nav button{scroll-snap-align:start}}
+
+/* Never conceal financial source verification on small screens. */
+@media(max-width:790px){
+ .finance-headers{display:none}
+ .finance-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+ .finance-row>*:nth-child(3),.finance-row>*:nth-child(4){display:block;min-width:0}
+ .finance-row>*:nth-child(4){font-size:12px;align-self:center;overflow-wrap:anywhere}
+ .finance-row>span:nth-child(2){font-size:12px;overflow-wrap:anywhere}
+}
