@@ -121,7 +121,7 @@ function matrix(
   const selected =
     focus === "__closed__"
       ? null
-      : groups.find((g) => g.name === selected.name) ||
+      : groups.find((g) => g.name === focus) ||
         [...groups].sort((a, b) => b.priority - a.priority)[0] ||
         null;
   const focusedTrend = selected
@@ -132,7 +132,7 @@ function matrix(
           "block",
           f.grade,
           f.subject,
-        ).find((g) => g.name === focus),
+        ).find((g) => g.name === selected.name),
       }))
     : [];
   return `<section class="register-section" aria-labelledby="block-map-title">
