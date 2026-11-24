@@ -145,7 +145,7 @@ function header() {
   const index = MONTHS.indexOf(f.month);
   const districts = Array.from(new Set(schoolRows.filter(r=>r.month===f.month).map(r=>r.district))).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   const shortDate = LABELS[f.month].replace(/^(January|February|March|April|May|June|July|August|September|October|November|December)/, name=>name.slice(0,3));
-  return `<div class="app-shell compact-shell">
+  return `<div class="app-shell compact-shell ${page==="grants"?"grant-mode":""}">
     <header class="masthead">
       <div class="compact-header">
         <a class="compact-wordmark" href="https://ashh-droid.github.io/chalkline-pbl-review/" aria-label="Chalkline home">
