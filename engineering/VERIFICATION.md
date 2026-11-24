@@ -1,42 +1,33 @@
 # Verification report
 
-## Automated checks
+## Automated source and data checks
 
-The repository's validation workflow runs on pushes and pull requests. It installs dependencies, performs strict TypeScript checks, regenerates the compact school-response dataset from the original source, and runs the Node test suite **after rebuilding** `src/` into `docs/app/`.
+The GitHub Actions validation workflow runs on every push to the production and redesign branches, and on pull requests. It installs pinned development dependencies, formats and typechecks the TypeScript source, reproduces the compact synthetic school dataset from the original records, then **rebuilds the JavaScript before running tests**.
 
-Coverage includes school participation and evidence denominators, grade and subject filters, attendance opportunities, status thresholds, geographical aggregation, grant-month reconciliation, finance warnings, narrative citation and number validation, and proposed meeting actions. The compact-data test compares every recorded enrollment, attendance, participation and evidence value against the full source.
+The unit suite checks the underlying indicators, risk thresholds, selected class/subject denominators, geographic rankings, grant-month reconciliations, finance/source warnings, proposed meeting actions, narrative citation safeguards and compact-data equivalence. A passing old compiled bundle cannot substitute for a fresh source build.
 
-See the current GitHub Actions result for the passing/failing state. A green badge is required before releasing changes to the public demo.
+## Real-browser acceptance
 
-## Automated browser acceptance
+The acceptance script launches the HTTP-served application in headless Chromium and exercises six viewport widths: **360, 390, 768, 1024, 1366 and 1440 CSS pixels**. It checks:
 
-GitHub Actions now launches the real local HTTP site in headless Chromium at 360, 390, 768, 1024 and 1440 CSS-pixel viewports. The checks cover all four pages, chart/table switches, advanced filters, source-linked grant records, lazy-loaded image completion, the three-month block panel, no month-label collision, no horizontal page overflow and no uncaught page errors. CI also captures up-to-date desktop/mobile screenshots and the Open Graph preview from the running application.
+- Exactly two main navigation tabs, the visible month and programme finding, and three calculated KPIs.
+- Priority rows, the three-month stacked status comparison, and the district register.
+- District expansion; block record and three-month data; date-label clearance beside the bars.
+- The keyboard Escape action for both block and calculation drawers.
+- Month changes, class selection and visible active filters.
+- All three grant selectors, cited fact ledger, collapsed Supporting details and synthetic evidence loading.
+- Meeting-pack print flow and restoration of the month view.
+- No JavaScript page errors or page-level horizontal overflow at the tested widths.
+- On a 1366 × 768 screen, the first-screen summary cards fit above the bottom of the viewport.
 
-## Earlier live-site acceptance review
+The workflow generates updated desktop and phone screenshots and the share-preview image from the running browser. View the latest GitHub Actions run for the executable evidence and status; previously passed runs do not certify a later commit.
 
-On 24 November 2026, a manual review of the previously published GitHub Pages version reported:
+## Manual and external release checks
 
-| Check | Result reported |
-| --- | --- |
-| Programme review, meeting pack, grant reporting and data notes | All four views opened |
-| Month and geography filters | Responded correctly |
-| Browser console | No page errors observed |
-| Keyboard focus | Visible and operable |
-| Indexed evidence and photos | Loaded |
-| Mobile browser layout | No page-level horizontal scrolling observed |
+The browser suite covers the main workflow and narrow layouts. It is not a substitute for independent Safari/Firefox checks, assistive-technology reviews, actual printer/PDF review, or a Lighthouse audit. No Lighthouse 95+ score or under-one-second performance result is claimed without measurement.
 
-These are manual observations of the earlier live version, not proof that subsequent edits have passed the same checks. The current release requires re-running responsive and interactive checks after deployment.
-
-## Release acceptance checklist
-
-- [x] GitHub Actions typecheck, compact-data audit and fresh-build tests pass
-- [ ] Published Pages build loads with no script or data requests failing
-- [ ] Manual final check of download controls, priority links, print/export and fact citations (automated checks cover chart/table and filter navigation)
-- [x] Block panel month labels do not overlap bars at 360, 390, 768, 1024 and 1440 CSS pixels
-- [ ] Keyboard and screen-reader tables work, including reduced-motion mode
-- [ ] Open Graph sharing image and canonical URL resolve correctly
-- [x] No page-level horizontal overflow or uncaught page errors in automated Chromium tests
+The earlier public-site review checked the former four-page release. **The two-page redesign requires the current GitHub Pages deployment to succeed before its live-site status can be described as verified.** Preserve the live-site URL and confirm the deployment status after merging the validated redesign into `main`.
 
 ## Boundaries
 
-The site uses synthetic educational, finance and media records. Human review is required before interpreting the draft report operationally. The optional AI endpoint was checked for deterministic fallback behavior, not against an authenticated external provider.
+The school, grant, finance and evidence records are synthetic. Budget values are source-provided units, not a named currency. Proposed actions in the printed meeting pack are recommendations, not recorded assignments. AI-generated narrative support is optional in a server edition; the public static edition uses deterministic source-linked writing and needs no API key.
