@@ -195,3 +195,16 @@ h1,h2,h3,h4{font-weight:500}
 @media(max-width:790px){
  .matrix-layout>.focus-panel{align-self:start;position:static;max-height:none;overflow:visible}
 }
+
+/* Compact monthly indicator register inside the selected block record. */
+.register-history{margin:17px 0;padding-top:12px;border-top:1px solid #cbd5c9}
+.register-history h4{font-size:13px;font-weight:500;margin-bottom:9px}
+.register-history table{width:100%;border-collapse:collapse;table-layout:fixed}
+.register-history th,.register-history td{font-size:12px;padding:7px 3px;border-bottom:1px solid #d2d9cf;text-align:center}
+.register-history th:first-child{text-align:left;width:45%}
+.register-history th{font-weight:500}
+.register-history .register-mark{display:inline-block;font-size:16px;font-weight:600;line-height:1}
+.register-mark.good{color:var(--leaf)}
+.register-mark.critical{color:var(--kumkum)}
+.register-mark.nodata{color:var(--muted)}
+.register-history p{font-size:12px;line-height:1.5;margin:9px 0 0}
