@@ -6,6 +6,7 @@ export function renderGrantPage({ grantRows, selectedGrant, f, gr, header, foote
     const util = gr.financeTotals.derivedUtilization;
     const periodEnded = f.month >= gr.source.period_end_date.slice(0, 7);
     const sourceText = (aiOutput && aiRequested) ? aiOutput : gr.narrative;
+    const staticSite = location.hostname.endsWith(".github.io");
     const label = aiOutput && aiRequested ? 'AI wording, structure and numbers checked' : aiRequested ? 'Deterministic fallback' : 'Deterministic narrative · AI off';
     return `${header()}
 <section class="paper-title">
@@ -35,15 +36,15 @@ export function renderGrantPage({ grantRows, selectedGrant, f, gr, header, foote
 <div><small>Reported budget utilized</small><strong>${util.toFixed(1)}%</strong><span>Approved ${fmt(gr.financeTotals.approved)} units</span></div>
  </section>
  
-<div class="grant-warningline ${gr.warnings.length ? 'warn' : ''}"><strong>${gr.warnings.length ? 'Reconciliation needs attention' : 'Performance figures reconciled'}</strong><span>${gr.warnings.length ? `${gr.warnings.length} finance/source warnings; original published figures preserved.` : 'No mismatches in checked source totals.'} ${periodEnded ? `The grant period ended ${esc(gr.source.period_end_date)}; ${(100 - util).toFixed(1)} percentage points remain below full reported utilization.` : `Grant period ends ${esc(gr.source.period_end_date)}.`}</span></div>
+<div class="grant-warningline ${gr.warnings.length ? 'warn' : ''}"><strong>${gr.warnings.length ? 'Reconciliation needs attention' : 'Performance figures reconciled'}</strong><span>${gr.warnings.length ? `${gr.warnings.length} finance/source warnings; original published figures preserved.` : 'No mismatches in checked source totals.'} ${periodEnded ? `The grant period ended ${esc(new Date(gr.source.period_end_date+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}))}; ${(100 - util).toFixed(1)} percentage points remain below full reported utilization.` : `Grant period ends ${esc(gr.source.period_end_date)}.`}</span></div>
  
 <section class="register-section grant-document">
 <div class="register-head">
 <div>
 <p class="overline">Review-ready material</p>
-<h2>The report, with its footnotes.</h2>
+<h2>Report draft</h2>
 <p>Move over a citation to find its matching fact. Click to open the full fact.</p></div>
-<div class="narrative-modes" role="group" aria-label="Narrative generation mode"><button data-action="ai-off" class="${!aiRequested ? 'active' : ''}" aria-pressed="${!aiRequested}">AI off</button><button data-action="ai-on" class="${aiRequested ? 'active' : ''}" aria-pressed="${aiRequested}">Optional AI</button></div></div>
+${staticSite ? '<span class="static-ai-note">This static demo uses verified calculations. AI wording needs the server edition.</span>' : `<div class="narrative-modes" role="group" aria-label="Narrative generation mode"><button data-action="ai-off" class="${!aiRequested ? 'active' : ''}" aria-pressed="${!aiRequested}">AI off</button><button data-action="ai-on" class="${aiRequested ? 'active' : ''}" aria-pressed="${aiRequested}">Optional AI</button></div>`}</div>
  
 <div class="narrative-status"><span class="small-square ${aiOutput && aiRequested ? 'good' : 'behind'}"></span><strong>${label}</strong><span>${esc(aiStatus)}</span></div>
  
@@ -83,7 +84,7 @@ export function renderGrantPage({ grantRows, selectedGrant, f, gr, header, foote
 <div class="register-head">
 <div>
 <p class="overline">Milestones</p>
-<h2>What the source records.</h2></div></div>
+<h2>Milestones</h2></div></div>
 <div class="milestone-list">${gr.milestones.map(x => `
 <div><strong>${esc(x.name)}</strong><span>${esc(x.owner)}</span><em>${esc(x.status)}</em></div>`).join('')}</div></section>
  
@@ -91,7 +92,7 @@ export function renderGrantPage({ grantRows, selectedGrant, f, gr, header, foote
 <div class="register-head">
 <div>
 <p class="overline">Evidence index</p>
-<h2>Linked synthetic material.</h2>
+<h2>Evidence and photos</h2>
 <p>Only items indexed to this grant and reporting month appear here.</p></div><button data-action="toggle-media" class="outline-action">${showMedia ? 'Hide images' : 'Show images'}</button></div>${showMedia ? (gr.assets.length ? `
 <div class="evidence-grid">${gr.assets.map(x => `<figure><img loading="lazy" src="${esc(x.url)}" alt="${esc(x.summary_or_caption)}"/><figcaption><strong>${esc(x.title)}</strong><small>${esc(x.record_id)} · ${esc(x.district)} · SYNTHETIC</small>
 <p>${esc(x.summary_or_caption)}</p></figcaption></figure>`).join('')}</div>` : '<p class="no-evidence">No media is indexed for this grant and month. None has been invented.</p>') : ''}</section>${footer()}`;
