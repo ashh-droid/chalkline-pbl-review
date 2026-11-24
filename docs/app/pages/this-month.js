@@ -15,7 +15,7 @@ const statusClass = {
     "No Data": "nodata",
 };
 const safeWidth = (rate) => Math.max(0, Math.min(100, rate ?? 0));
-const shortMonth = (month) => LABELS[month].split(" ")[0];
+const shortMonth = (month) => LABELS[month].split(" ")[0].slice(0, 3);
 function metricTile(label, value, previous, scope) {
     const difference = comparePoints(value, previous);
     const targetDelta = value === null ? null : value - THRESHOLDS.ON_TRACK;
