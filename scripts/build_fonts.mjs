@@ -11,5 +11,8 @@ for(const [family,file] of fonts){
  const source=join('node_modules','@fontsource-variable',family,'files',file);
  if(!existsSync(source))throw new Error('Missing font asset: '+source);
  copyFileSync(source,join(dir,file));
+ const license = join('node_modules','@fontsource-variable',family,'LICENSE');
+ if(!existsSync(license))throw new Error('Missing SIL OFL notice: '+license);
+ copyFileSync(license,join(dir,'LICENSE-'+family+'.txt'));
  console.log('Bundled '+file);
 }
