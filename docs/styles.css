@@ -459,3 +459,203 @@ h1,h2,h3,h4{font-weight:500}
   .priority-stats{font-size:12px}
   .priority-stats small{font-size:12px!important}
 }
+
+
+/* Brand visibility: never scale the Chalkline name and descriptor as tiny image text. */
+.compact-header {
+  display: grid;
+  grid-template-columns: max-content max-content minmax(0,1fr);
+  align-items: center;
+  column-gap: 24px;
+  row-gap: 10px;
+  min-height: 74px;
+  padding: 10px 30px;
+}
+.compact-wordmark {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 11px;
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--chalk);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.compact-wordmark img.brand-symbol {
+  display: block;
+  flex: 0 0 50px;
+  width: 50px;
+  height: 50px;
+  max-height: none;
+  border-radius: 11px;
+}
+.brand-name-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 3px;
+}
+.brand-name {
+  display: block;
+  font: 500 29px/1 "Newsreader", Georgia, serif;
+  letter-spacing: -0.025em;
+  color: #f7f5eb;
+}
+.brand-descriptor {
+  display: block;
+  font: 400 12.5px/1.1 "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  letter-spacing: 0;
+  color: #d3e1d2;
+}
+.compact-wordmark:hover .brand-name { color: #ffffff; }
+.compact-nav {
+  justify-self: center;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  min-width: max-content;
+  gap: 8px;
+}
+.compact-nav button {
+  min-height: 44px;
+  padding: 0 11px;
+  font-size: 15px;
+}
+.compact-nav button.active::after { bottom: 0; left: 11px; right: 11px; }
+.compact-header-tools {
+  margin-left: 0;
+  justify-self: end;
+  justify-content: flex-end;
+  min-width: 0;
+  flex-wrap: nowrap;
+  gap: 9px;
+}
+.compact-month-switch, .compact-district-picker, .compact-filter-toggle { flex-shrink: 0; }
+.compact-header-tools .compact-district-picker select { width: 160px; max-width: 100%; }
+@media (max-width: 1100px) {
+  .compact-header {
+    grid-template-columns: minmax(0,1fr) max-content;
+    grid-template-areas: "brand navigation" "controls controls";
+    min-height: 0;
+    padding: 10px 22px;
+    column-gap: 14px;
+    row-gap: 8px;
+  }
+  .compact-wordmark { grid-area: brand; }
+  .compact-nav {
+    grid-area: navigation;
+    justify-self: end;
+    align-self: center;
+    height: 46px;
+  }
+  .compact-header-tools {
+    grid-area: controls;
+    justify-self: stretch;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .compact-wordmark img.brand-symbol {
+    flex-basis: 47px;
+    width: 47px;
+    height: 47px;
+  }
+  .brand-name { font-size: 28px; }
+  .compact-nav button { font-size: 15px; padding-inline: 12px; }
+}
+@media (max-width: 680px) {
+  .compact-header {
+    grid-template-columns: minmax(0,1fr);
+    grid-template-areas: "brand" "navigation" "controls";
+    padding: 10px 15px;
+    row-gap: 7px;
+  }
+  .compact-wordmark {
+    justify-self: start;
+    width: max-content;
+    max-width: 100%;
+  }
+  .compact-wordmark img.brand-symbol {
+    flex-basis: 47px;
+    width: 47px;
+    height: 47px;
+  }
+  .brand-name { font-size: 28px; }
+  .brand-descriptor { font-size: 12.5px; }
+  .compact-nav {
+    justify-self: stretch;
+    justify-content: flex-start;
+    align-self: center;
+    width: 100%;
+    height: 41px;
+    min-width: 0;
+    gap: 10px;
+  }
+  .compact-nav button {
+    font-size: 14px;
+    padding: 0 9px;
+    min-height: 41px;
+  }
+  .compact-header-tools {
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr) auto;
+    align-items: center;
+    width: 100%;
+    gap: 7px;
+  }
+  .compact-month-switch {
+    grid-column: 1;
+    min-height: 40px;
+    gap: 2px;
+    margin: 0;
+  }
+  .compact-month-switch button {
+    min-height: 40px;
+    min-width: 26px;
+    padding: 0 5px;
+  }
+  .compact-month-switch span {
+    min-width: 66px;
+    font-size: 12px;
+  }
+  .compact-district-picker {
+    grid-column: 2;
+    min-width: 0;
+    width: 100%;
+    flex: initial;
+  }
+  .compact-header-tools .compact-district-picker select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 40px;
+    padding-inline: 6px;
+    font-size: 13px;
+  }
+  .compact-filter-toggle {
+    grid-column: 3;
+    min-height: 40px;
+    padding: 7px 9px;
+    font-size: 13px;
+  }
+  .grant-mode .compact-header-tools {
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 360px) {
+  .compact-header { padding-inline: 12px; }
+  .brand-name { font-size: 27px; }
+  .brand-descriptor { font-size: 12px; }
+  .compact-wordmark img.brand-symbol {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+  .compact-header-tools { gap: 5px; }
+  .compact-month-switch span { min-width: 61px; }
+  .compact-month-switch button { min-width: 25px; padding: 0 3px; }
+  .compact-filter-toggle { padding-inline: 7px; font-size: 12px; }
+}
