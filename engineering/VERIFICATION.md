@@ -1,11 +1,38 @@
-# Verification and test coverage
+# Verification report
 
-- `npm test`: 18/18 passing after the redesign.
-- `npm run typecheck`: passed with TypeScript strict mode.
-- `npm run build`: passed; compiled site in `docs/app/`.
-- Node server HTTP: `/`, `/api/health`, evidence PNG, and `/api/narrative` verified. The latter returned a deterministic fallback without an AI key.
-- Chromium fixture-injection check: program verdict, three bullet rows, 395 block tiles and month switch, selected-block three-month trend, 38 district dots, expanded geography table, meeting agenda with five slots and four proposed actions, grant ledger (13 facts), finance rows, indexed evidence images (naturalWidth > 0), AI fallback, four data-method notes.
-- No JavaScript page errors from the Chromium check.
-- Mobile viewport 390px: no horizontal document overflow.
-- Meeting pack printed as one A4 page in Chromium.
-- **Limitations:** direct Chromium localhost navigation was blocked in the development environment. Screens were tested by injecting compiled modules and fixtures into a browser; an unrestricted public live-site test is still required. Optional AI service with a real key was not tested.
+## Automated checks
+
+The repository's validation workflow runs on pushes and pull requests. It installs dependencies, performs strict TypeScript checks, regenerates the compact school-response dataset from the original source, and runs the Node test suite **after rebuilding** `src/` into `docs/app/`.
+
+Coverage includes school participation and evidence denominators, grade and subject filters, attendance opportunities, status thresholds, geographical aggregation, grant-month reconciliation, finance warnings, narrative citation and number validation, and proposed meeting actions. The compact-data test compares every recorded enrollment, attendance, participation and evidence value against the full source.
+
+See the current GitHub Actions result for the passing/failing state. A green badge is required before releasing changes to the public demo.
+
+## Browser acceptance review
+
+On 24 November 2026, a manual review of the previously published GitHub Pages version reported:
+
+| Check | Result reported |
+| --- | --- |
+| Programme review, meeting pack, grant reporting and data notes | All four views opened |
+| Month and geography filters | Responded correctly |
+| Browser console | No page errors observed |
+| Keyboard focus | Visible and operable |
+| Indexed evidence and photos | Loaded |
+| Mobile browser layout | No page-level horizontal scrolling observed |
+
+These are manual observations of the earlier live version, not proof that subsequent edits have passed the same checks. The current release requires re-running responsive and interactive checks after deployment.
+
+## Release acceptance checklist
+
+- [ ] GitHub Actions typecheck, compact-data audit and fresh-build tests pass
+- [ ] Published Pages build loads with no script or data requests failing
+- [ ] Filters, chart/table views, CSV downloads, priority links, print/export and fact citations work
+- [ ] Chart labels and detail-panel timelines do not overlap at 360, 390, 768, 1024 and 1440 CSS pixels
+- [ ] Keyboard and screen-reader tables work, including reduced-motion mode
+- [ ] Open Graph sharing image and canonical URL resolve correctly
+- [ ] No page-level horizontal overflow; no critical browser console errors
+
+## Boundaries
+
+The site uses synthetic educational, finance and media records. Human review is required before interpreting the draft report operationally. The optional AI endpoint was checked for deterministic fallback behavior, not against an authenticated external provider.
