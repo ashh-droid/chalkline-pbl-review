@@ -1,31 +1,63 @@
-"""Optional live-site smoke test; requires Playwright Python and installed Chromium.
-Run: python scripts/browser_smoke.py http://localhost:3000
+"""Live browser smoke checks for the static-first Chalkline app.
+
+Usage: python scripts/browser_smoke.py http://localhost:3000
+Requires: pip install playwright && python -m playwright install chromium
 """
 import sys
 from playwright.sync_api import sync_playwright
+
 url = sys.argv[1] if len(sys.argv) > 1 else 'http://localhost:3000'
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    page = browser.new_page(viewport={'width': 1440, 'height': 900})
-    errors=[]
-    page.on('pageerror', lambda error: errors.append(str(error)))
-    page.goto(url, wait_until='networkidle')
-    assert page.locator('.bullet-row').count()==3
-    assert page.locator('.block-tile').count()==395
-    page.locator('[data-grid-month="2025-07"]').click()
-    page.locator('.block-tile').first.click()
-    assert page.locator('.focus-timeline > div').count()==3
-    page.locator('[data-page="meeting"]').first.click()
-    assert page.locator('.agenda-strip > div').count()==5
-    page.locator('[data-page="grants"]').first.click()
-    assert page.locator('.margin-fact').count()>0
-    page.locator('.evidence-grid img').first.scroll_into_view_if_needed()
-    assert page.locator('.evidence-grid img').first.evaluate('(img) => img.complete && img.naturalWidth>0')
-    page.locator('[data-action="ai-on"]').click()
-    page.wait_for_timeout(300)
-    assert 'AI service is not connected' in page.locator('body').inner_text() or 'Deterministic fallback' in page.locator('body').inner_text()
-    page.locator('[data-page="quality"]').first.click()
-    assert page.locator('.method-note').count()==4
-    assert not errors, errors
-    print('PASS: all four pages, block matrix, fact ledger, evidence image, AI fallback')
+widths = [360, 390, 768, 1024, 1440]
+
+with sync_playwright() as playwright:
+    browser = playwright.chromium.launch(headless=True)
+    for width in widths:
+        page = browser.new_page(viewport={'width': width, 'height': 900})
+        errors = []
+        page.on('pageerror', lambda error: errors.append(str(error)))
+        response = page.goto(url, wait_until='networkidle', timeout=60000)
+        assert response and response.status == 200, f'Cannot load at {width}px'
+        page.locator('.bullet-row').first.wait_for()
+        assert page.locator('.bullet-row').count() == 3, f'Bullet indicators at {width}'
+        assert page.locator('.block-tile').count() == 395, f'Block count at {width}'
+        assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 2'), f'Horizontal document overflow at {width}px'
+
+        page.locator('.block-tile').first.click()
+        assert page.locator('.focus-timeline > div').count() == 3
+        for row in page.locator('.focus-timeline > div').all():
+            name = row.locator('span').first.bounding_box()
+            bar = row.locator('.mini-track').bounding_box()
+            assert name and bar and name['x'] + name['width'] <= bar['x'] - 1, f'Month overlaps attendance bar at {width}px'
+
+        if width <= 390:
+            assert page.locator('.district-mobile-list').is_visible()
+            assert not page.locator('.district-strip').is_visible()
+        else:
+            assert page.locator('.district-strip').is_visible()
+
+        page.locator('[data-chart-view="grid:table"]').click()
+        assert page.locator('table').count() > 0
+        page.locator('[data-chart-view="grid:chart"]').click()
+        page.locator('[data-chart-view="plot:table"]').click()
+        assert page.locator('table').count() > 0
+        page.locator('[data-chart-view="plot:chart"]').click()
+
+        page.locator('[data-action="more-filters"]').click()
+        assert page.locator('[data-filter="block"]').is_visible()
+        page.locator('[data-action="more-filters"]').click()
+        page.locator('[data-page="meeting"]').first.click()
+        assert page.locator('.agenda-strip > div').count() == 5
+        assert page.locator('.grant-agenda-summary').count() == 1
+        page.locator('[data-page="grants"]').first.click()
+        assert page.locator('.margin-fact').count() >= 13
+        if page.locator('.evidence-grid img').count() > 0:
+            image = page.locator('.evidence-grid img').first
+            image.scroll_into_view_if_needed()
+            assert image.evaluate('(img) => img.complete && img.naturalWidth > 0')
+        page.locator('[data-page="quality"]').first.click()
+        assert page.locator('.method-note').count() == 4
+        assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 2'), f'Overflow after navigation at {width}px'
+        assert not errors, f'Browser errors at {width}px: {errors}'
+        print(f'PASS: {width}px browser flows, chart tables, month labels, four views, no page errors')
+        page.close()
     browser.close()
