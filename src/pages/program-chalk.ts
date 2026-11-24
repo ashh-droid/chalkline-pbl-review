@@ -121,14 +121,14 @@ function matrix(
   const selected =
     focus === "__closed__"
       ? null
-      : groups.find((g) => g.name === focus) ||
+      : groups.find((g) => g.name === selected.name) ||
         [...groups].sort((a, b) => b.priority - a.priority)[0] ||
         null;
   const focusedTrend = selected
     ? MONTHS.map((month) => ({
         month,
         geo: geography(
-          availableRows(schools, { ...f, month }),
+          availableRows(schools, { ...f, month, district: selected.name.split(" - Block ")[0], block: selected.name }),
           "block",
           f.grade,
           f.subject,
