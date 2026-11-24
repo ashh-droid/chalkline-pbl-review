@@ -28,6 +28,8 @@ with sync_playwright() as playwright:
         assert page.locator('.bullet-row').count() == 3, f'Bullet indicators at {width}'
         assert page.locator('.block-tile').count() == 395, f'Block count at {width}'
         assert page.locator('.focus-timeline strong').count() == 3, f'Default block history at {width}'
+        assert page.locator('.register-history tbody tr').count() == 3, f'Indicator register rows at {width}'
+        assert page.locator('.register-mark').count() == 9, f'Indicator register values at {width}'
         assert all(value.strip() not in ('—', '-', '') for value in page.locator('.focus-timeline strong').all_inner_texts()), f'Default block history missing data at {width}'
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 2'), f'Horizontal document overflow at {width}px'
 
