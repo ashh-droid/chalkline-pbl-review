@@ -51,18 +51,24 @@ export function renderGrantPage({
   const periodEnded = f.month >= gr.source.period_end_date.slice(0, 7);
   const sourceText = aiOutput && aiRequested ? aiOutput : gr.narrative;
 
-  const remaining=Math.max(0,gr.financeTotals.approved-gr.financeTotals.reportedCumulative);
-  const shortName=gr.source.grant_id.match(/GRANT_([A-Z]+)_/)?.[1]||gr.source.grant_id;
-  const grantOptions=Array.from(new Map(grantRows.map(x=>[x.grant_id,x.grant_name])).entries());
+  const remaining = Math.max(
+    0,
+    gr.financeTotals.approved - gr.financeTotals.reportedCumulative,
+  );
+  const shortName =
+    gr.source.grant_id.match(/GRANT_([A-Z]+)_/)?.[1] || gr.source.grant_id;
+  const grantOptions = Array.from(
+    new Map(grantRows.map((x) => [x.grant_id, x.grant_name])).entries(),
+  );
   return `${header()}<div class="grant-page">
   <div class="grant-choices" role="group" aria-label="Choose grant"><span>Grant</span>
-    ${grantOptions.map(([id])=>`<button data-grant-select="${esc(id)}" class="${id===selectedGrant?"active":""}" aria-pressed="${id===selectedGrant}">${id.match(/GRANT_([A-Z]+)_/)?.[1]||id}</button>`).join("")}
+    ${grantOptions.map(([id]) => `<button data-grant-select="${esc(id)}" class="${id === selectedGrant ? "active" : ""}" aria-pressed="${id === selectedGrant}">${id.match(/GRANT_([A-Z]+)_/)?.[1] || id}</button>`).join("")}
     <span class="grant-month-note">${esc(LABELS[f.month])}</span>
   </div>
   <section class="grant-brief" aria-label="Grant report summary">
     <div class="grant-brief-meta">${pill(gr.risk.level)} · Grant ${esc(shortName)} · ${esc(LABELS[f.month])}</div>
-    <h1>Attendance is ${formatPercent(m.attendanceRate)}. ${util.toFixed(1)}% of the budget is reported used${periodEnded ? `; the grant ended on ${esc(new Date(gr.source.period_end_date+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}))} with ${fmt(remaining)} units not reported as utilized.`:"."}</h1>
-    <p>${esc(gr.source.grant_name)} · ${esc(gr.districts.join(", "))}. ${gr.warnings.length?`${gr.warnings.length} source figures need checking.`:"Source totals reconciled."}</p>
+    <h1>Attendance is ${formatPercent(m.attendanceRate)}. ${util.toFixed(1)}% of the budget is reported used${periodEnded ? `; the grant ended on ${esc(new Date(gr.source.period_end_date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }))} with ${fmt(remaining)} units not reported as utilized.` : "."}</h1>
+    <p>${esc(gr.source.grant_name)} · ${esc(gr.districts.join(", "))}. ${gr.warnings.length ? `${gr.warnings.length} source figures need checking.` : "Source totals reconciled."}</p>
   </section>
   <section class="grant-observation" aria-label="Grant performance overview">
  
