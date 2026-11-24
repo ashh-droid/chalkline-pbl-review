@@ -53,7 +53,7 @@ function blockHistory(
     const data=geography(availableRows(schools,{...f,month,district,block:selected.name}),"block",f.grade,f.subject)[0];
     return {month, data};
   });
-  return `<div class="record-overlay" data-action="close-block" aria-hidden="true"></div>
+  return `<button class="record-overlay" data-action="close-block" aria-label="Close block details"></button>
     <aside class="record-drawer" role="dialog" aria-modal="true" aria-labelledby="record-title">
       <div class="drawer-top"><span>Block record</span><button class="drawer-close" data-action="close-block" aria-label="Close block record">×</button></div>
       <h2 id="record-title">${esc(selected.name)}</h2>
@@ -77,7 +77,7 @@ function blockHistory(
     </aside>`;
 }
 function methodsDrawer(): string {
-  return `<div class="record-overlay" data-action="close-methods" aria-hidden="true"></div>
+  return `<button class="record-overlay" data-action="close-methods" aria-label="Close calculation notes"></button>
     <aside class="record-drawer methods-drawer" role="dialog" aria-modal="true" aria-labelledby="methods-title">
       <div class="drawer-top"><span>Data notes</span><button class="drawer-close" data-action="close-methods" aria-label="Close calculation notes">×</button></div>
       <h2 id="methods-title">How is this calculated?</h2>
@@ -129,17 +129,17 @@ export function renderThisMonth({
   for(const districtBlocks of byDistrict.values())districtBlocks.sort((a,b)=>b.priority-a.priority||a.name.localeCompare(b.name,undefined,{numeric:true}));
   const priorities=[...blocks].filter(b=>b.priority>0).sort((a,b)=>b.priority-a.priority).slice(0,5);
   const selected=focusedBlock ? blocks.find(b=>b.name===focusedBlock) : null;
-  const chips=[f.grade!=="all" ? `Class ${f.grade}`:"",f.subject!=="all" ? (f.subject==="math"?"Math":"Science"):"",f.block||""].filter(Boolean);
+  const chips=[...(f.grade!=="all"?[{key:"grade",name:`Class ${f.grade}`}]:[]),...(f.subject!=="all"?[{key:"subject",name:f.subject==="math"?"Math":"Science"}]:[]),...(f.block?[{key:"block",name:f.block}]:[])];
   return `${header()}
    <div class="month-content">
      <section class="month-summary" aria-label="Current programme status">
-       <div class="month-status-line"><span class="month-status ${statusClass[overall.level]}"><i></i>${overall.level}</span><span>${esc(f.district || "All districts")} · ${shortMonth(f.month)} 2025</span></div>
+       <div class="month-status-line"><span class="month-status ${statusClass[overall.level]}"><i></i>${overall.level}</span><span>PBL programme · ${esc(f.district || "All districts")} · ${shortMonth(f.month)} 2025</span></div>
        <div class="month-lead"><h1>${esc(measureSummary)}; ${esc(criticalStory)}.</h1>
          <button class="print-action" data-action="print-meeting" type="button">Print meeting pack <span aria-hidden="true">↗</span></button>
        </div>
        <div class="summary-subline"><span>${fmt(metrics.schools)} schools · ${fmt(metrics.enrollment)} learners</span>
          <button class="info-link" data-action="open-methods" aria-label="Read how these results are calculated">ⓘ How is this calculated?</button></div>
-       ${chips.length?`<div class="active-filters" aria-label="Active filters">${chips.map((c,i)=>`<button data-remove-filter="${i===0&&f.grade!=="all"?"grade":i===0||i===1&&f.grade!=="all"?"subject":"block"}">${esc(c)} ×</button>`).join("")}</div>`:""}
+       ${chips.length?`<div class="active-filters" aria-label="Active filters">${chips.map(c=>`<button data-remove-filter="${c.key}">${esc(c.name)} ×</button>`).join("")}</div>`:""}
      </section>
      <section class="month-metrics" aria-label="Three programme measures">
         ${indicators.map(item=>metricTile(...item)).join("")}
