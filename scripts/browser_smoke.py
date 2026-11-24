@@ -18,6 +18,13 @@ with sync_playwright() as playwright:
         response = page.goto(url, wait_until='networkidle', timeout=60000)
         assert response and response.status == 200, f'Cannot load at {width}px'
         page.locator('.bullet-row').first.wait_for()
+        if width == 1440:
+            page.wait_for_function("document.fonts.status === 'loaded'")
+            page.screenshot(path='engineering/screenshots/Chalkline_Program_Review.png', full_page=True)
+            page.screenshot(path='docs/og-image.png', clip={'x': 0, 'y': 0, 'width': 1200, 'height': 630})
+        elif width == 390:
+            page.wait_for_function("document.fonts.status === 'loaded'")
+            page.screenshot(path='engineering/screenshots/Chalkline_Mobile.png', full_page=True)
         assert page.locator('.bullet-row').count() == 3, f'Bullet indicators at {width}'
         assert page.locator('.block-tile').count() == 395, f'Block count at {width}'
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 2'), f'Horizontal document overflow at {width}px'
@@ -46,6 +53,8 @@ with sync_playwright() as playwright:
         assert page.locator('[data-filter="block"]').is_visible()
         page.locator('[data-action="more-filters"]').click()
         page.locator('[data-page="meeting"]').first.click()
+        if width == 1440:
+            page.screenshot(path='engineering/screenshots/Chalkline_Meeting_Pack.png', full_page=True)
         assert page.locator('.agenda-strip > div').count() == 5
         assert page.locator('.grant-agenda-summary').count() == 1
         page.locator('[data-page="grants"]').first.click()
@@ -55,7 +64,11 @@ with sync_playwright() as playwright:
             image.scroll_into_view_if_needed()
             image.evaluate("(img) => {img.loading = 'eager'}")
             page.wait_for_function("() => { const image = document.querySelector('.evidence-grid img'); return image && image.complete && image.naturalWidth > 0 }", timeout=15000)
+        if width == 1440:
+            page.screenshot(path='engineering/screenshots/Chalkline_Grant_Reporting.png', full_page=True)
         page.locator('[data-page="quality"]').first.click()
+        if width == 1440:
+            page.screenshot(path='engineering/screenshots/Chalkline_Data_Notes.png', full_page=True)
         assert page.locator('.method-note').count() == 4
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 2'), f'Overflow after navigation at {width}px'
         assert not errors, f'Browser errors at {width}px: {errors}'
