@@ -161,7 +161,7 @@ All records synthetic; proposed owners and dates are illustrative, not confirmed
 }
 function download(text: string, name: string) { const b = new Blob([text], { type: 'text/markdown;charset=utf-8' }); const url = URL.createObjectURL(b); const a = document.createElement('a'); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 3000); }
 function renderCitations(paragraph: string) {
-    return esc(paragraph).replace(/\[(F\d+)\]/g, (_, id: string) => `<button type="button" class="fact-citation" data-fact="${id}" title="Jump to source fact ${id}">[${id}]</button>`);
+    return esc(paragraph).replace(/\[(F\d+)\]/g, (_, id: string) => `<button type="button" class="fact-citation" data-fact="${id}" aria-label="View source fact ${id}" title="View source fact ${id}"><sup>${id.replace("F","")}</sup></button>`);
 }
 async function requestAINarrative() {
     aiRequested = true;
