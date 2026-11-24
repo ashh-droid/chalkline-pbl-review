@@ -27,6 +27,8 @@ with sync_playwright() as playwright:
             page.screenshot(path='engineering/screenshots/Chalkline_Mobile.png', full_page=True)
         assert page.locator('.bullet-row').count() == 3, f'Bullet indicators at {width}'
         assert page.locator('.block-tile').count() == 395, f'Block count at {width}'
+        assert page.locator('.focus-timeline strong').count() == 3, f'Default block history at {width}'
+        assert all(value.strip() not in ('—', '-', '') for value in page.locator('.focus-timeline strong').all_inner_texts()), f'Default block history missing data at {width}'
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 2'), f'Horizontal document overflow at {width}px'
 
         page.locator('.block-tile').first.click()
