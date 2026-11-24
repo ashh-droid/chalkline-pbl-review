@@ -50,13 +50,7 @@ export function renderGrantPage({
   const util = gr.financeTotals.derivedUtilization;
   const periodEnded = f.month >= gr.source.period_end_date.slice(0, 7);
   const sourceText = aiOutput && aiRequested ? aiOutput : gr.narrative;
-  const staticSite = location.hostname.endsWith(".github.io");
-  const label =
-    aiOutput && aiRequested
-      ? "AI wording, structure and numbers checked"
-      : aiRequested
-        ? "Deterministic fallback"
-        : "Deterministic narrative · AI off";
+
   const remaining=Math.max(0,gr.financeTotals.approved-gr.financeTotals.reportedCumulative);
   const shortName=gr.source.grant_id.match(/GRANT_([A-Z]+)_/)?.[1]||gr.source.grant_id;
   const grantOptions=Array.from(new Map(grantRows.map(x=>[x.grant_id,x.grant_name])).entries());
@@ -87,10 +81,8 @@ export function renderGrantPage({
 
 <h2>Report draft</h2>
 <p>Select footnotes to see their source facts.</p></div>
-${staticSite ? '<span class="static-ai-note">This static demo uses verified calculations. AI wording needs the server edition.</span>' : `<div class="narrative-modes" role="group" aria-label="Narrative generation mode"><button data-action="ai-off" class="${!aiRequested ? "active" : ""}" aria-pressed="${!aiRequested}">AI off</button><button data-action="ai-on" class="${aiRequested ? "active" : ""}" aria-pressed="${aiRequested}">Optional AI</button></div>`}</div>
- 
-<div class="narrative-status"><span class="small-square ${aiOutput && aiRequested ? "good" : "behind"}"></span><strong>${label}</strong><span>${esc(aiStatus)}</span></div>
- 
+<div class="report-actions top-report-actions"><button data-action="copy-grant" class="solid-action">Copy</button><button data-action="download-grant" class="outline-action">Export</button><button data-action="print" class="outline-action">Print / PDF</button></div></div>
+
 <div class="document-columns">
 <div class="report-paper">
 <div class="report-paper-head"><span class="report-brand"><img src="brand/chalkline-wordmark-light.svg" alt="Chalkline" width="111" height="24"/> MONTHLY REPORT DRAFT</span><span>${esc(LABELS[f.month])}</span></div>
