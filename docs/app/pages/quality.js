@@ -1,11 +1,28 @@
-import { THRESHOLDS } from '../core.js';
-export function renderQualityPage({ q, finance, header, footer, fmt, esc }) {
-    const mismatches = finance.filter(x => x.approved > 0 && Math.abs(100 * x.cumulative / x.approved - 100 * x.sourceRate) > .1).length;
+import { THRESHOLDS } from "../core.js";
+export function renderQualityPage({ q, finance, header, footer, fmt, esc, }) {
+    const mismatches = finance.filter((x) => x.approved > 0 &&
+        Math.abs((100 * x.cumulative) / x.approved - 100 * x.sourceRate) > 0.1).length;
     const notes = [
-        ['01', 'Survey answers conflict with session attendance', `${fmt(q.gradeSurveyContradictions ?? 0)} school-month responses report attendance for grades not selected in the corresponding survey answer; ${fmt(q.subjectSurveyContradictions ?? 0)} report attendance for unselected subjects. The recorded session cells are used for grade and subject filtering, and the original answers are retained.`],
-        ['02', 'Finance utilization does not always reconcile', `${fmt(mismatches)} of ${fmt(finance.length)} finance lines differ by more than 0.1 percentage points when the reported cumulative units are divided by the approved amount. The source values are displayed alongside the computed ratio; no silent rewrite occurs.`],
-        ['03', 'Running totals do not match source monthly spend', `${fmt(q.financeRunningTotalMismatch ?? 0)} reported cumulative lines disagree with the sum of monthly spending up to that month. A source correction cannot be chosen from these files alone.`],
-        ['04', 'Draft donor narrative is not treated as evidence', 'The report draft column contains contradictory statements. Reports are regenerated using the fact ledger, computed school indicators, finance figures and indexed media, never by quoting the supplied donor prose.'],
+        [
+            "01",
+            "Survey answers conflict with session attendance",
+            `${fmt(q.gradeSurveyContradictions ?? 0)} school-month responses report attendance for grades not selected in the corresponding survey answer; ${fmt(q.subjectSurveyContradictions ?? 0)} report attendance for unselected subjects. The recorded session cells are used for grade and subject filtering, and the original answers are retained.`,
+        ],
+        [
+            "02",
+            "Finance utilization does not always reconcile",
+            `${fmt(mismatches)} of ${fmt(finance.length)} finance lines differ by more than 0.1 percentage points when the reported cumulative units are divided by the approved amount. The source values are displayed alongside the computed ratio; no silent rewrite occurs.`,
+        ],
+        [
+            "03",
+            "Running totals do not match source monthly spend",
+            `${fmt(q.financeRunningTotalMismatch ?? 0)} reported cumulative lines disagree with the sum of monthly spending up to that month. A source correction cannot be chosen from these files alone.`,
+        ],
+        [
+            "04",
+            "Draft donor narrative is not treated as evidence",
+            "The report draft column contains contradictory statements. Reports are regenerated using the fact ledger, computed school indicators, finance figures and indexed media, never by quoting the supplied donor prose.",
+        ],
     ];
     return `${header()}
 <section class="paper-title">
@@ -22,11 +39,13 @@ export function renderQualityPage({ q, finance, header, footer, fmt, esc }) {
 <div>
 <p class="overline">Four notes from the audit</p>
 <h2>Where source records disagree.</h2>
-<p>The discrepancies are made visible instead of being guessed away.</p></div></div>${notes.map(([id, name, description]) => `
+<p>The discrepancies are made visible instead of being guessed away.</p></div></div>${notes
+        .map(([id, name, description]) => `
 <article class="method-note"><span>${id}</span>
 <div>
 <h3>${esc(name)}</h3>
-<p>${esc(description)}</p></div></article>`).join('')}</section>
+<p>${esc(description)}</p></div></article>`)
+        .join("")}</section>
  
 <section class="register-section">
 <div class="register-head">
