@@ -60,11 +60,11 @@ with sync_playwright() as playwright:
         assert "Aug" in page.locator(".compact-month-switch").inner_text(), f"Month didn't change at {width}"
         page.locator('[data-action="month-next"]').click()
 
-        page.locator('[data-action="header-filters"]').click()
+        page.locator('.compact-filter-toggle').click()
         assert page.locator('[data-filter="grade"]').is_visible(), f"Class filter not available at {width}"
         page.locator('[data-filter="grade"]').select_option("7")
         assert page.locator(".active-filters").count() == 1, f"Active filter chip missing at {width}"
-        page.locator('[data-action="header-filters"]').click()
+        page.locator('.compact-filter-toggle').click()
         page.locator('[data-action="reset"]').count()  # Reset is available from popover; filter is valid.
 
         page.locator('[data-page="grants"]').first.click()
