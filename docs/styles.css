@@ -186,3 +186,12 @@ h1,h2,h3,h4{font-weight:500}
  .bullet-axis span:nth-child(4){left:75%;transform:translateX(-50%)}
  .bullet-axis span:nth-child(5){right:0}
 }
+
+/* Keep block record compact and visible rather than stretching to the full matrix height. */
+@media(min-width:791px){
+ .matrix-layout{align-items:start}
+ .matrix-layout>.focus-panel{align-self:start;position:sticky;top:136px;max-height:calc(100vh - 155px);overflow-y:auto}
+}
+@media(max-width:790px){
+ .matrix-layout>.focus-panel{align-self:start;position:static;max-height:none;overflow:visible}
+}
