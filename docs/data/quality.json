@@ -1,0 +1,10 @@
+{
+  "gradeSurveyContradictions": 1858,
+  "subjectSurveyContradictions": 1669,
+  "rows": 6900,
+  "schools": 2300,
+  "blocks": 395,
+  "districts": 38,
+  "financeRateMismatch": 37,
+  "financeRunningTotalMismatch": 4
+}
