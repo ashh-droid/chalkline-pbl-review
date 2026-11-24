@@ -95,7 +95,8 @@ function header() {
     <header class="masthead">
       <div class="compact-header">
         <a class="compact-wordmark" href="https://ashh-droid.github.io/chalkline-pbl-review/" aria-label="Chalkline home">
-          <img src="brand/chalkline-wordmark-dark.svg" width="142" height="38" alt="Chalkline"/>
+          <img class="brand-symbol" src="brand/chalkline-mark.svg" width="48" height="48" alt="" aria-hidden="true"/>
+          <span class="brand-name-group"><strong class="brand-name">Chalkline</strong><small class="brand-descriptor">PBL review · grant reporting</small></span>
         </a>
         <nav class="compact-nav" aria-label="Main navigation">
           <button data-page="review" class="${page === "review" ? "active" : ""}" aria-current="${page === "review" ? "page" : "false"}">This month</button>
