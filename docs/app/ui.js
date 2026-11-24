@@ -123,7 +123,7 @@ function currentReviewDetail() {
     r.actions = generateReviewActions(schoolRows, f, warnings);
     return r;
 }
-function meetingPage() { return renderMeetingPage({ f, r: currentReviewDetail(), header, selectors, footer, esc, fmt, pill, statusClass }); }
+function meetingPage() { return renderMeetingPage({ f, r: currentReviewDetail(), header, selectors, footer, esc, fmt, pill, statusClass, grant: currentGrant() }); }
 function reviewMarkdown() {
     const r = currentReviewDetail(), m = r.metrics;
     return `# PBL Monthly Review — ${LABELS[f.month]}
