@@ -1,5 +1,6 @@
 /** Printable monthly meeting agenda assembled from deterministic review facts. */
 import { formatPercent, LABELS, THRESHOLDS, type Filters, type Level, type Month } from '../core.js';
+import type { GrantReport } from '../grant.js';
 import type { ReviewDetail } from '../review.js';
 interface MeetingPageContext {
     f: Filters;
@@ -11,8 +12,9 @@ interface MeetingPageContext {
     fmt: (n: number) => string;
     pill: (value: Level) => string;
     statusClass: (value: Level) => string;
+    grant: GrantReport;
 }
-export function renderMeetingPage({ f, r, header, selectors, footer, esc, fmt, pill, statusClass }: MeetingPageContext): string {
+export function renderMeetingPage({ f, r, header, selectors, footer, esc, fmt, pill, statusClass, grant }: MeetingPageContext): string {
     const agenda = [['01', '5 min', 'Wins & progress'], ['02', '5 min', 'Changes since last month'], ['03', '15 min', 'Where to act'], ['04', '5 min', 'Grant and evidence check'], ['05', '5 min', 'Decisions, owners and dates']];
     const totalBlocks = (x: typeof r.indicatorCounts[number]) => Object.values(x.counts).reduce((n, v) => n + v, 0);
     return `${header()}
@@ -73,14 +75,10 @@ export function renderMeetingPage({ f, r, header, selectors, footer, esc, fmt, p
 <section class="agenda-item"><span class="agenda-num">04 <em>5 minutes</em></span>
 <h3>Grant & evidence check</h3>
 <p>Verify finance reconciliation flags and the supporting evidence before donor reporting. View grant details in the separate <button class="inline-text-link" data-page="grants">grant reporting register ↗</button>.</p>
-<div class="status-trend">
-<h4>Block risk over time</h4>${r.indicatorCounts.map(x => {
-        const total = totalBlocks(x);
-        return `
-<div class="status-trend-row"><span>${LABELS[x.month as Month].split(' ')[0]}</span>
-<div class="stacked-bar">${(['Critical', 'At Risk', 'Behind', 'On Track', 'No Data'] as Level[]).map(level => `<span class="stacked-part ${statusClass(level)}" style="width:${total ? 100 * x.counts[level] / total : 0}%" title="${level}: ${x.counts[level]} blocks"></span>`).join('')}</div><small>${total} blocks</small></div>`;
-    }).join('')}
-<p class="micro-note">Red = critical · orange = at risk · yellow = behind · green = on track</p></div></section>
+<div class="grant-agenda-summary"><p><strong>${esc(grant.source.grant_name)}</strong> · ${pill(grant.risk.level)}</p>
+ <p><b>${fmt(grant.financeTotals.reportedCumulative)}</b> of <b>${fmt(grant.financeTotals.approved)}</b> reported budget units utilized (${grant.financeTotals.derivedUtilization.toFixed(1)}%).</p>
+ <p>${grant.warnings.length} source/finance warnings need checking. ${fmt(Math.max(0,grant.financeTotals.approved-grant.financeTotals.reportedCumulative))} units not reported as utilized.</p>
+ <p class="micro-note">Source records are synthetic. Finance differences are verification flags, not confirmed misuse.</p></div></section>
  </div>
  
 <section class="agenda-item agenda-actions"><span class="agenda-num">05 <em>5 minutes</em></span>
@@ -99,7 +97,7 @@ export function renderMeetingPage({ f, r, header, selectors, footer, esc, fmt, p
 <td>${esc(x.action)}<small>${esc(x.linkedMetric)}</small></td>
 <td>${esc(x.owner)}</td>
 <td>${esc(x.priority)}</td>
-<td>${esc(x.dueDate)}</td></tr>`).join('')}</tbody></table></div></section>
+<td>${esc(new Date(x.dueDate + "T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}))}</td></tr>`).join('')}</tbody></table></div></section>
  
 <section class="agenda-item prompt-sheet">
 <h3>Questions for the room</h3>
