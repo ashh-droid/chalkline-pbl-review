@@ -45,7 +45,7 @@ const statusClass: Record<Level, string> = {
 const safeWidth = (rate: number | null) =>
   Math.max(0, Math.min(100, rate ?? 0));
 const shortMonth = (month: string) =>
-  LABELS[month as keyof typeof LABELS].split(" ")[0];
+  LABELS[month as keyof typeof LABELS].split(" ")[0].slice(0, 3);
 
 function metricTile(
   label: string,
