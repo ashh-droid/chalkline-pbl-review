@@ -17,6 +17,8 @@ let media: Media[] = [];
 let quality: Quality | null = null;
 let page: Page = 'review', by: 'district' | 'block' = 'district', sortBy = 'priority', ascending = false, tablePage = 0;
 let selectedGrant = 'GRANT_AA_2025', showSources = true, showMedia = true;
+let moreFilters = false;
+let gridView = 'chart', plotView = 'chart';
 let gridMonth: Month = '2025-09', focusedBlock: string | null = null, showTable = false;
 let tableSearch = '', statusFilter = 'all', aiRequested = false, aiOutput: string | null = null, aiStatus = 'Deterministic narrative is ready; AI is off.';
 const params = new URLSearchParams(location.search);
@@ -36,25 +38,22 @@ function selectors() {
     const districts = Array.from(new Set(schoolRows.filter(r => r.month === f.month).map(r => r.district))).sort();
     const blocks = Array.from(new Set(schoolRows.filter(r => r.month === f.month && (!f.district || r.district === f.district)).map(r => r.block))).sort();
     const active = [f.district && ['district', f.district], f.block && ['block', f.block], f.grade !== 'all' && ['grade', `Class ${f.grade}`], f.subject !== 'all' && ['subject', titleCase(f.subject)]].filter(Boolean) as string[][];
-    return `
-<section class="filters" aria-label="Program filters">
-    
-<div class="filter-fields">
-    
-<label>Month<select data-filter="month">${MONTHS.map(m => opt(m, LABELS[m], f.month)).join('')}</select></label>
-    
-<label>District<select data-filter="district">${opt('', 'All districts', f.district)}${districts.map(v => opt(v, v, f.district)).join('')}</select></label>
-    
-<label>Block<select data-filter="block">${opt('', 'All blocks', f.block)}${blocks.map(v => opt(v, v, f.block)).join('')}</select></label>
-    
-<label>Class<select data-filter="grade">${['all', '6', '7', '8'].map(g => opt(g, g === 'all' ? 'All classes' : `Class ${g}`, f.grade)).join('')}</select></label>
-    
-<label>Subject<select data-filter="subject">${['all', 'science', 'math'].map(v => opt(v, v === 'all' ? 'Both subjects' : titleCase(v), f.subject)).join('')}</select></label>
-    <button data-action="reset" class="reset-filter">Reset</button></div>
-    ${active.length ? `
-<div class="active-filters"><span>IN VIEW</span>${active.map(([key, value]) => `<button data-remove-filter="${key}">${esc(value)} ×</button>`).join('')}</div>` : ''}
+    return `<section class="filters" aria-label="Programme filters">
+      <div class="filter-fields">
+        <label>Month<select data-filter="month">${MONTHS.map(m => opt(m, LABELS[m], f.month)).join('')}</select></label>
+        <label>District<select data-filter="district">${opt('', 'All districts', f.district)}${districts.map(v => opt(v, v, f.district)).join('')}</select></label>
+        <button class="more-filter-toggle" data-action="more-filters" aria-expanded="${moreFilters}">${moreFilters ? 'Fewer filters −' : 'More filters +'}</button>
+        <button data-action="reset" class="reset-filter">Reset</button>
+      </div>
+      ${moreFilters ? `<div class="advanced-filters filter-fields">
+        <label>Block<select data-filter="block">${opt('', 'All blocks', f.block)}${blocks.map(v => opt(v, v, f.block)).join('')}</select></label>
+        <label>Class<select data-filter="grade">${['all','6','7','8'].map(g => opt(g, g === 'all' ? 'All classes' : `Class ${g}`, f.grade)).join('')}</select></label>
+        <label>Subject<select data-filter="subject">${['all','science','math'].map(v => opt(v, v === 'all' ? 'Both subjects' : titleCase(v), f.subject)).join('')}</select></label>
+      </div>` : ''}
+      ${active.length ? `<div class="active-filters"><span>In view</span>${active.map(([key, value]) => `<button data-remove-filter="${key}" aria-label="Remove ${esc(value)} filter">${esc(value)} ×</button>`).join('')}</div>` : ''}
     </section>`;
 }
+
 function header() {
     return `
 <div class="app-shell">
@@ -118,7 +117,7 @@ function performanceTable(rows: GeoRow[]) {
 <div class="table-footer"><span>Showing ${copy.length ? tablePage * 15 + 1 : 0}–${Math.min((tablePage + 1) * 15, copy.length)} of ${copy.length}</span>
 <div><button class="icon-button" data-action="prev-page" ${tablePage === 0 ? 'disabled' : ''}>← Previous</button><span>Page ${tablePage + 1} / ${Math.max(1, max)}</span><button class="icon-button" data-action="next-page" ${tablePage >= max - 1 ? 'disabled' : ''}>Next →</button></div></div>`;
 }
-function program() { return renderChalkProgram({ schools: schoolRows, filters: f, header, footer, selectors, esc, fmt, performanceTable, gridMonth, focusedBlock, showTable, by }); }
+function program() { return renderChalkProgram({ schools: schoolRows, filters: f, header, footer, selectors, esc, fmt, performanceTable, gridMonth, focusedBlock, showTable, by, gridView, plotView }); }
 function currentReviewDetail() {
     const r = buildReviewDetail(schoolRows, f);
     const warnings = finance.filter(x => x.reporting_month === f.month && x.approved > 0 && Math.abs(100 * x.cumulative / x.approved - 100 * x.sourceRate) > 0.1).map(x => `${x.grant_id}: ${x.budget_line}`);
@@ -194,7 +193,10 @@ async function requestAINarrative() {
 }
 function grantPage() { return renderGrantPage({ grantRows, selectedGrant, f, gr: currentGrant(), header, footer, opt, fmt, esc, pill, showMedia, showSources, aiRequested, aiOutput, aiStatus, renderCitations }); }
 function qualityPage() { return renderQualityPage({ q: quality!, finance, header, footer, fmt, esc }); }
-function render() { root.innerHTML = page === 'review' ? program() : page === 'meeting' ? meetingPage() : page === 'grants' ? grantPage() : qualityPage(); }
+function render() {
+    document.title = ({ review: 'Programme review', meeting: 'Meeting pack', grants: 'Grant reporting', quality: 'Data notes' })[page] + ' | Chalkline';
+    root.innerHTML = page === 'review' ? program() : page === 'meeting' ? meetingPage() : page === 'grants' ? grantPage() : qualityPage();
+}
 function notify(message: string) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = message; document.body.appendChild(t); setTimeout(() => t.remove(), 2400); }
 async function copy(value: string) {
     try {
@@ -259,8 +261,12 @@ document.addEventListener('click', e => {
     }
     if (el.dataset.gridBlock || el.dataset.priorityBlock) {
         focusedBlock = el.dataset.gridBlock || el.dataset.priorityBlock || null;
-        if (el.dataset.priorityBlock)
+        if (el.dataset.priorityBlock && focusedBlock) {
             gridMonth = f.month;
+            f.district = focusedBlock.split(' - Block ')[0];
+            f.block = focusedBlock;
+            syncURL();
+        }
         render();
         if (el.dataset.priorityBlock)
             document.getElementById('block-map-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -313,18 +319,39 @@ document.addEventListener('click', e => {
         render();
         return;
     }
+    if (el.dataset.chartView) {
+        const [chart, view] = el.dataset.chartView.split(':');
+        if (chart === 'grid') gridView = view;
+        if (chart === 'plot') plotView = view;
+        render();
+        return;
+    }
+    if (el.dataset.chartExport) {
+        const chart = el.dataset.chartExport;
+        const scope = chart === 'grid' ? { ...f, month: gridMonth } : f;
+        const place = chart === 'grid' || f.district ? 'block' : 'district';
+        const rows = geography(schoolRows.filter(x => x.month === scope.month && (!scope.district || x.district === scope.district) && (!scope.block || x.block === scope.block)), place, scope.grade, scope.subject);
+        const csv = [['Place','Schools','Learners','Participation (%)','Evidence (%)','Attendance (%)','Status'].join(','),
+          ...rows.map(x => [x.name,x.metrics.schools,x.metrics.enrollment,x.metrics.participationRate ?? '',x.metrics.evidenceRate ?? '',x.metrics.attendanceRate ?? '',x.risk.level].map(cell => '"'+String(cell).replace(/"/g,'""')+'"').join(','))].join('\n');
+        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+        const a = document.createElement('a'); a.href = url; a.download = 'chalkline-'+chart+'-'+scope.month+'.csv'; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+        return;
+    }
     const action = el.dataset.action;
+    if (action === 'more-filters') { moreFilters = !moreFilters; render(); return; }
     if (action === 'toggle-table') {
         showTable = !showTable;
         render();
         return;
     }
     if (action === 'close-block') {
-        focusedBlock = null;
+        focusedBlock = '__closed__';
         render();
         return;
     }
     if (action === 'reset') {
+        moreFilters = false;
         f = { month: f.month, district: '', block: '', grade: 'all', subject: 'all' };
         syncURL();
         render();
@@ -366,13 +393,23 @@ document.addEventListener('click', e => {
 });
 async function init() {
     try {
-        const [schools, grants, fin, assets, checks] = await Promise.all(['schools.json', 'grants.json', 'finance.json', 'media.json', 'quality.json'].map(async (file) => {
+        const [schools, grants, fin, assets, checks] = await Promise.all(['schools-lite.json', 'grants.json', 'finance.json', 'media.json', 'quality.json'].map(async (file) => {
             const response = await fetch(`data/${file}`);
             if (!response.ok)
                 throw new Error(`Could not load ${file}`);
             return response.json();
         }));
-        schoolRows = schools;
+        schoolRows = schools.rows.map((row: number[], index: number) => {
+  const block = schools.blocks[row[1]];
+  return {
+    month: schools.months[row[0]], block, district: block.split(' - Block ')[0],
+    schoolId: String(index), school: '', conducted: Boolean(row[2] & 1),
+    evidence: Boolean(row[2] & 2), reportedClasses: '', reportedSubjects: '',
+    classes: [6, 7, 8].map((grade, i) => ({ grade, enrolled: row[3 + i * 3],
+      science: row[4 + i * 3], math: row[5 + i * 3] })),
+    sourceRate: 0, sourceRisk: ''
+  };
+});
         grantRows = grants;
         finance = fin;
         media = assets;
@@ -390,12 +427,12 @@ async function init() {
 void init();
 // SVG plot markers select their district with the same filter logic as the select control.
 document.addEventListener('click', e => {
-    const plot = (e.target as HTMLElement).closest('[data-plot-district]') as HTMLElement | null;
+    const plot = (e.target as HTMLElement).closest('[data-plot-district],[data-plot-block]') as HTMLElement | null;
     if (!plot)
         return;
-    f.district = plot.dataset.plotDistrict || '';
-    f.block = '';
-    focusedBlock = null;
+    f.district = plot.dataset.plotDistrict || f.district;
+    f.block = plot.dataset.plotBlock || '';
+    focusedBlock = f.block || null;
     syncURL();
     render();
 });
