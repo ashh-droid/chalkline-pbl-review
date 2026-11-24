@@ -18,6 +18,8 @@ def check_header(page, width):
         const e = find(selector);
         if (!e || getComputedStyle(e).display === "none") return null;
         const r = e.getBoundingClientRect();
+        // A child of a hidden parent has its own display value but no box.
+        if (r.width === 0 || r.height === 0) return null;
         return { left:r.left, right:r.right, top:r.top, bottom:r.bottom,
                  width:r.width, height:r.height };
       };
