@@ -1,0 +1,32 @@
+name: Validate Chalkline
+on:
+  push:
+    branches: [main, "fix/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Check types
+        run: npm run typecheck
+      - name: Verify compact dataset reproduces the source
+        run: |
+          cp docs/data/schools-lite.json /tmp/schools-lite-before.json
+          npm run build:data
+          cmp /tmp/schools-lite-before.json docs/data/schools-lite.json
+      - name: Build and test latest source
+        run: npm test
+      - name: Check checked-in browser build
+        run: git diff --exit-code -- docs/app
