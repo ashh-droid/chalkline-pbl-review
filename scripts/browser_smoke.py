@@ -10,6 +10,60 @@ from playwright.sync_api import sync_playwright
 url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:3000"
 widths = [360, 390, 768, 1024, 1366, 1440]
 
+# Check the entire brand lockup, not only page-level horizontal overflow.
+def check_header(page, width):
+    result = page.evaluate("""() => {
+      const find = selector => document.querySelector(selector);
+      const element = selector => {
+        const e = find(selector);
+        if (!e || getComputedStyle(e).display === "none") return null;
+        const r = e.getBoundingClientRect();
+        return { left:r.left, right:r.right, top:r.top, bottom:r.bottom,
+                 width:r.width, height:r.height };
+      };
+      const overlap = (a,b) => a && b && a.left < b.right-0.5 &&
+        b.left < a.right-0.5 && a.top < b.bottom-0.5 && b.top < a.bottom-0.5;
+      const brand = element(".compact-wordmark");
+      const symbol = element(".compact-wordmark .brand-symbol");
+      const name = element(".compact-wordmark .brand-name");
+      const descriptor = element(".compact-wordmark .brand-descriptor");
+      const tabs = [...document.querySelectorAll(".compact-nav button")]
+        .map(el => {
+          const r=el.getBoundingClientRect();
+          return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};
+        });
+      const month = element(".compact-month-switch");
+      const district = element(".compact-district-picker select");
+      const filter = element(".compact-filter-toggle");
+      const visible = [brand,symbol,name,descriptor,...tabs,month,district,filter].filter(Boolean);
+      const clipped = visible.some(r => r.left < -0.5 || r.right > innerWidth+0.5 || r.width < 1 || r.height < 1);
+      const icon = find(".compact-wordmark .brand-symbol");
+      return {
+        clipped,
+        overlaps: tabs.some(x => overlap(brand,x)) ||
+          tabs.some(x => overlap(x,month) || overlap(x,district) || overlap(x,filter)) ||
+          overlap(brand,month) || overlap(brand,district) || overlap(brand,filter) ||
+          overlap(month,district) || overlap(month,filter) || overlap(district,filter),
+        nameText: find(".brand-name")?.textContent?.trim(),
+        descriptorText: find(".brand-descriptor")?.textContent?.trim(),
+        nameFontPx: parseFloat(getComputedStyle(find(".brand-name")).fontSize),
+        descriptorFontPx: parseFloat(getComputedStyle(find(".brand-descriptor")).fontSize),
+        logoLoaded: !!icon && icon.complete && icon.naturalWidth > 0,
+        symbolWidth: symbol?.width,
+        tabCount: tabs.length,
+        documentOverflows: document.documentElement.scrollWidth > innerWidth+2,
+        positions: {brand,symbol,name,descriptor,tabs,month,district,filter}
+      };
+    }""")
+    assert result["nameText"] == "Chalkline", f"Brand name lost at {width}px: {result}"
+    assert result["descriptorText"] == "PBL review · grant reporting", f"Brand subtitle lost at {width}px: {result}"
+    assert result["logoLoaded"] and result["symbolWidth"] >= 40, f"Logo too small or missing at {width}px: {result}"
+    assert result["nameFontPx"] >= 26 and result["descriptorFontPx"] >= 12, f"Brand font scaled down at {width}px: {result}"
+    assert result["tabCount"] == 2 and not result["clipped"], f"Header control clipped at {width}px: {result}"
+    assert not result["overlaps"], f"Header elements overlap at {width}px: {result}"
+    assert not result["documentOverflows"], f"Page overflows at {width}px: {result}"
+
+
 with sync_playwright() as playwright:
     browser = playwright.chromium.launch(headless=True)
     for width in widths:
@@ -19,6 +73,7 @@ with sync_playwright() as playwright:
         response = page.goto(url, wait_until="networkidle", timeout=60000)
         assert response and response.status == 200, f"HTTP error at {width}px"
         page.locator(".month-metric").first.wait_for(timeout=30000)
+        check_header(page, width)
         assert page.locator(".compact-nav button").count() == 2, f"Navigation has extra tabs at {width}"
         assert page.locator(".month-metric").count() == 3, f"Three KPIs missing at {width}"
         assert page.locator(".status-stack-row").count() == 3, f"Month status summary missing at {width}"
@@ -96,5 +151,20 @@ with sync_playwright() as playwright:
         page.locator(".month-metric").first.wait_for()
         assert not errors, f"Uncaught JS error at {width}px: {errors}"
         print(f"PASS: {width}px | two-page flow, summary, district drill-down, month, filters, grants, print, no overflow")
+        page.close()
+    # Fine-grained viewport sampling catches clipping between CSS breakpoints.
+    for width in [320, 347, 375, 414, 430, 480, 560, 600, 680, 700, 820, 960, 1100, 1280]:
+        page = browser.new_page(viewport={"width": width, "height": 900})
+        response = page.goto(url, wait_until="networkidle", timeout=60000)
+        assert response and response.status == 200
+        page.locator(".month-metric").first.wait_for()
+        check_header(page, width)
+        if width == 347:
+            page.wait_for_function("document.fonts.status === 'loaded'")
+            page.screenshot(path="engineering/screenshots/Chalkline_Header_347.png",
+                            clip={"x":0,"y":0,"width":347,"height":min(420,900)})
+        page.locator('[data-page="grants"]').click()
+        check_header(page, width)
+        print(f"PASS: {width}px | brand, tabs, month and controls visible and non-overlapping")
         page.close()
     browser.close()
