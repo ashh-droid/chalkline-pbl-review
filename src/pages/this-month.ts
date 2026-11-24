@@ -142,7 +142,7 @@ export function renderThisMonth({
        ${chips.length?`<div class="active-filters" aria-label="Active filters">${chips.map(c=>`<button data-remove-filter="${c.key}">${esc(c.name)} ×</button>`).join("")}</div>`:""}
      </section>
      <section class="month-metrics" aria-label="Three programme measures">
-        ${indicators.map(item=>metricTile(...item)).join("")}
+        ${indicators.map(item=>metricTile(item[0],item[1],item[2],item[3])).join("")}
      </section>
      <div class="month-card-grid">
        <section class="month-card act-card" aria-labelledby="act-heading">
