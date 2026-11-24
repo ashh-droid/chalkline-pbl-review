@@ -22,7 +22,7 @@ npm test
 npm start
 ```
 
-The development app starts at `http://localhost:3000`. The tests automatically rebuild the TypeScript source first. The static production files live in `docs/`. Screenshots in `engineering/screenshots/` illustrate the original release and may not match subsequent improvements.
+The development app starts at `http://localhost:3000`. The tests automatically rebuild the TypeScript source first. The static production files live in `docs/`. Screenshots in `engineering/screenshots/` are captured from the latest validated Chromium build at desktop and phone widths.
 
 ![Chalkline programme review](engineering/screenshots/Chalkline_Program_Review.png)
 
@@ -84,7 +84,7 @@ Chalkline browser interface (static-first)
             └─ Optional Node narrative API → validated AI wording or deterministic fallback
 ```
 
-The interface uses browser-native TypeScript, SVG and CSS. No runtime framework, external chart service or analytics tracker is required. Font files are planned for local hosting under `docs/fonts/`; the interface includes fallback system fonts. A Node server is included for local/API use; the published GitHub Pages edition is fully static and keeps all factual reporting functional.
+The interface uses browser-native TypeScript, SVG and CSS. No runtime framework, external chart service or analytics tracker is required. Newsreader, Atkinson Hyperlegible Next and Atkinson Hyperlegible Mono are self-hosted from `docs/fonts/` as Latin-subset WOFF2 variable fonts, with system-font fallbacks and bundled SIL Open Font License notices. CI regenerates the assets from pinned Fontsource packages. A Node server is included for local/API use; the published GitHub Pages edition is fully static and keeps all factual reporting functional.
 
 ### Reproducible builds
 
