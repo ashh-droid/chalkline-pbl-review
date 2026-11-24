@@ -72,6 +72,9 @@ with sync_playwright() as playwright:
         assert page.locator(".grant-brief h1").is_visible(), f"Grant summary not rendered at {width}"
         assert page.locator(".fact-margin .margin-fact").count() >= 13, f"Grant source facts missing at {width}"
         assert not page.locator(".grant-support").evaluate("(el)=>el.open"), f"Supporting details must start collapsed at {width}"
+        if width==1440:
+            page.evaluate("window.scrollTo(0,0)")
+            page.screenshot(path="engineering/screenshots/Chalkline_Grant_Reporting.png", full_page=True)
         page.locator(".grant-support > summary").click()
         assert page.locator(".grant-support").evaluate("(el)=>el.open"), f"Supporting details could not open at {width}"
         if page.locator(".evidence-grid img").count():
@@ -79,8 +82,6 @@ with sync_playwright() as playwright:
             image.scroll_into_view_if_needed()
             image.evaluate("(el)=>{el.loading='eager'}")
             page.wait_for_function("() => {const image=document.querySelector('.evidence-grid img');return image&&image.complete&&image.naturalWidth>0}",timeout=15000)
-        if width==1440:
-            page.screenshot(path="engineering/screenshots/Chalkline_Grant_Reporting.png", full_page=True)
         page.locator(".grant-choices button").nth(1).click()
         assert page.locator(".grant-choices button.active").count() == 1, f"Grant choice selection failed at {width}"
         assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 2"), f"Grant page overflow at {width}"
