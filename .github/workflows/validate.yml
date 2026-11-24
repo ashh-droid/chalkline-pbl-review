@@ -1,7 +1,7 @@
 name: Validate Chalkline
 on:
   push:
-    branches: [main, "fix/**"]
+    branches: [main, "fix/**", "redesign/**"]
   pull_request:
     branches: [main]
   workflow_dispatch:
